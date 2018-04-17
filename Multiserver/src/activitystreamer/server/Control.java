@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import activitystreamer.util.ControlUtil;
 import activitystreamer.util.Settings;
 
 public class Control extends Thread {
@@ -16,7 +17,6 @@ public class Control extends Thread {
 	private static Listener listener;
 	
 	protected static Control control = null;
-	
 	public static Control getInstance() {
 		if(control==null){
 			control=new Control();
@@ -53,6 +53,7 @@ public class Control extends Thread {
 	 * Return true if the connection should close.
 	 */
 	public synchronized boolean process(Connection con,String msg){
+		ControlUtil.getInstance().processCommands(msg);
 		return true;
 	}
 	
