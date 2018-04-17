@@ -71,6 +71,7 @@ public class Control extends Thread {
 		log.debug("incomming connection: "+Settings.socketAddress(s));
 		Connection c = new Connection(s);
 		connections.add(c);
+		log.info(connections.get(0).getSocket().getInputStream().toString());
 		return c;
 		
 	}

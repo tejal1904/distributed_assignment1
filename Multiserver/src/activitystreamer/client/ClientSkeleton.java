@@ -44,6 +44,7 @@ public class ClientSkeleton extends Thread {
 	
 	@SuppressWarnings("unchecked")
 	public void sendActivityObject(JSONObject activityObj){
+		log.info(activityObj);
 		
 	}
 	

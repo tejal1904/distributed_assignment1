@@ -13,6 +13,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import activitystreamer.util.Settings;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 
 public class Connection extends Thread {
@@ -24,6 +27,7 @@ public class Connection extends Thread {
 	private boolean open = false;
 	private Socket socket;
 	private boolean term=false;
+	JSONParser parser = new JSONParser();
 	
 	Connection(Socket socket) throws IOException{
 		in = new DataInputStream(socket.getInputStream());
@@ -67,7 +71,15 @@ public class Connection extends Thread {
 			String data;
 			while(!term && (data = inreader.readLine())!=null){
 				term=Control.getInstance().process(this,data);
-				
+				log.info("--------"+data);
+				JSONObject registration = (JSONObject) parser.parse(data);
+				String command = (String) registration.get("command");
+				String username = (String) registration.get("username");
+				String secret = (String) registration.get("secret");
+				if(!command.equals("REGISTER")){
+					log.info("invalid command");
+				}else
+					log.info("correct command");
 			}
 			log.debug("connection closed to "+Settings.socketAddress(socket));
 			Control.getInstance().connectionClosed(this);
@@ -75,6 +87,8 @@ public class Connection extends Thread {
 		} catch (IOException e) {
 			log.error("connection "+Settings.socketAddress(socket)+" closed with exception: "+e);
 			Control.getInstance().connectionClosed(this);
+		} catch (ParseException e) {
+			e.printStackTrace();
 		}
 		open=false;
 	}
