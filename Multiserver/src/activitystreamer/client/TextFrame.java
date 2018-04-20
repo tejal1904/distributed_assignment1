@@ -77,6 +77,7 @@ public class TextFrame extends JFrame implements ActionListener {
 	}
 
 	public void setOutputText(final JSONObject obj){
+		System.out.println("printing from server side");
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		JsonParser jp = new JsonParser();
 		JsonElement je = jp.parse(obj.toJSONString());

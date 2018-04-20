@@ -15,7 +15,6 @@ public class Control extends Thread {
 	private static ArrayList<Connection> connections;
 	private static boolean term=false;
 	private static Listener listener;
-	
 	protected static Control control = null;
 	public static Control getInstance() {
 		if(control==null){
@@ -53,8 +52,7 @@ public class Control extends Thread {
 	 * Return true if the connection should close.
 	 */
 	public synchronized boolean process(Connection con,String msg){
-		ControlUtil.getInstance().processCommands(msg);
-		return true;
+		return ControlUtil.getInstance().processCommands(con,msg);		
 	}
 	
 	/*
@@ -72,8 +70,7 @@ public class Control extends Thread {
 		Connection c = new Connection(s);
 		connections.add(c);
 		log.info(connections.get(0).getSocket().getInputStream().toString());
-		return c;
-		
+		return c;		
 	}
 	
 	/*

@@ -6,7 +6,6 @@ import java.net.Socket;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import activitystreamer.util.Settings;
 
 public class Listener extends Thread{

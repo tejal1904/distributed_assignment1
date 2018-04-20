@@ -42,7 +42,7 @@ public class Connection extends Thread {
 	/*
 	 * returns true if the message was written, otherwise false
 	 */
-	public boolean writeMsg(String msg) {
+	public boolean writeMsg(String msg) throws IOException {
 		if(open){
 			outwriter.println(msg);
 			outwriter.flush();
@@ -63,8 +63,7 @@ public class Connection extends Thread {
 				log.error("received exception closing the connection "+Settings.socketAddress(socket)+": "+e);
 			}
 		}
-	}
-	
+	}	
 	
 	public void run(){
 		try {
@@ -73,14 +72,7 @@ public class Connection extends Thread {
 				term=Control.getInstance().process(this,data);
 				log.info("--------"+data);
 				JSONObject registration = (JSONObject) parser.parse(data);
-				String command = (String) registration.get("command");
-				String username = (String) registration.get("username");
-				String secret = (String) registration.get("secret");
-				if(!command.equals("REGISTER")){
-					log.info("invalid command");
-				}else
-					log.info("correct command");
-			}
+			}			
 			log.debug("connection closed to "+Settings.socketAddress(socket));
 			Control.getInstance().connectionClosed(this);
 			in.close();
