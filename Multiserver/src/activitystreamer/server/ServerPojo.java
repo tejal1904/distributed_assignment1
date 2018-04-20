@@ -12,20 +12,21 @@ public class ServerPojo {
     List<ClientPojo> clientPojoList;
     ServerPojo connectedServer = null;
 
-    public ServerPojo() {
-    }
+    protected static ServerPojo serverPojo = null;
 
-    public ServerPojo(Socket socket, String secret) {
-        this.socket = socket;
-        this.secret = secret;
-        this.clientPojoList = new ArrayList<>();
+    public static ServerPojo getInstance() {
+        if(serverPojo==null){
+            serverPojo=new ServerPojo();
+            serverPojo.clientPojoList = new ArrayList<ClientPojo>();
+        }
+        return serverPojo;
     }
 
     public void addClients(ClientPojo client){
-        this.clientPojoList.add(client);
+        clientPojoList.add(client);
     }
     public void addServer(ServerPojo connectedServer){
-        this.connectedServer = connectedServer;
+        connectedServer = connectedServer;
     }
 
     public Socket getSocket() {
@@ -41,7 +42,7 @@ public class ServerPojo {
     }
 
     public void setSecret(String secret) {
-        this.secret = secret;
+        secret = secret;
     }
 
     public List<ClientPojo> getClientPojoList() {
@@ -49,7 +50,7 @@ public class ServerPojo {
     }
 
     public void setClientPojoList(List<ClientPojo> clientPojoList) {
-        this.clientPojoList = clientPojoList;
+        clientPojoList = clientPojoList;
     }
 
     public ServerPojo getConnectedServer() {
@@ -57,6 +58,16 @@ public class ServerPojo {
     }
 
     public void setConnectedServer(ServerPojo connectedServer) {
-        this.connectedServer = connectedServer;
+        connectedServer = connectedServer;
+    }
+
+    @Override
+    public String toString() {
+        return "ServerPojo{" +
+                "socket=" + socket +
+                ", secret='" + secret + '\'' +
+                ", clientPojoList=" + clientPojoList +
+                ", connectedServer=" + connectedServer +
+                '}';
     }
 }

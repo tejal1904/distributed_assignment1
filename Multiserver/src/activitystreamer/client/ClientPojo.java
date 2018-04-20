@@ -39,4 +39,13 @@ public class ClientPojo {
     public void setSocket(Socket socket) {
         this.socket = socket;
     }
+
+    @Override
+    public String toString() {
+        return "ClientPojo{" +
+                "username='" + username + '\'' +
+                ", secret='" + secret + '\'' +
+                ", socket=" + socket +
+                '}';
+    }
 }
