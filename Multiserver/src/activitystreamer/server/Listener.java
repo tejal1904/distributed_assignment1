@@ -23,11 +23,12 @@ public class Listener extends Thread{
 	@Override
 	public void run() {
 		log.info("listening for new connections on "+portnum);
-//		ServerPojo serverPojo = ServerPojo.getInstance();
-//		if(serverPojo.getSocket() == null){
-//			serverPojo.setSocket(serverSocket);
-//			serverPojo.setSecret(Settings.getSecret());
-//		}
+		ServerPojo serverPojo = ServerPojo.getInstance();
+		if(serverPojo.getSecret() == null){
+			serverPojo.setSecret(Settings.getSecret());
+			serverPojo.setHostName(serverSocket.getInetAddress()+":"+serverSocket.getLocalPort());
+			serverPojo.setPort(Settings.getLocalPort());
+		}
 		System.out.println("secret: "+Settings.getSecret());
 		while(!term){
 			Socket clientSocket;

@@ -78,12 +78,13 @@ public class ControlUtil {
 					if(secret.equals(serverPojo.getSecret())){
 						ServerPojo childServer = new ServerPojo();
 						childServer.setSecret(secret);
-//						childServer.setSocket(new ServerSocket(connection.getSocket().getPort()));
+						childServer.setPort(connection.getSocket().getPort());
+						childServer.setHostName(connection.getSocket().getInetAddress()+":"+connection.getSocket().getPort());
 						childServer.addParentServer(serverPojo);
 						serverPojo.addChildServers(childServer);
 						System.out.println("size of child servers: "+serverPojo.getChildServerList().size());
-						System.out.println("child server -> "+serverPojo.getChildServerList().get(0).getInstance());
-                        System.out.println("parent server -> "+serverPojo.getParentServer().getInstance());
+						System.out.println("child server -> "+serverPojo.getChildServerList().get(0).getHostName());
+                        System.out.println("parent server -> "+serverPojo.getParentServer().getHostName());
                     }
 
 					return true;

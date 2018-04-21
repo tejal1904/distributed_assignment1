@@ -8,13 +8,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ServerPojo {
-//    ServerSocket socket;
+
     String secret;
     List<ClientPojo> clientPojoList;
     ServerPojo parentServer = null;
     List<ServerPojo> childServerList;
     int port;
     String hostName;
+
+    protected static ServerPojo serverPojo = null;
+
+    /*public ServerPojo() {
+    }*/
+
+    public static ServerPojo getInstance() {
+        if(serverPojo == null){
+            serverPojo = new ServerPojo();
+            serverPojo.childServerList = new ArrayList<ServerPojo>();
+            serverPojo.clientPojoList = new ArrayList<ClientPojo>();
+        }
+        return serverPojo;
+    }
 
     public int getPort() {
 		return port;
@@ -32,17 +46,6 @@ public class ServerPojo {
 		this.hostName = hostName;
 	}
 
-	protected static ServerPojo serverPojo = null;
-
-    public static ServerPojo getInstance() {
-        if(serverPojo==null){
-            serverPojo=new ServerPojo();
-            serverPojo.clientPojoList = new ArrayList<ClientPojo>();
-            serverPojo.childServerList = new ArrayList<ServerPojo>();
-        }
-        return serverPojo;
-    }
-
     public void addClients(ClientPojo client){
         clientPojoList.add(client);
     }
@@ -50,7 +53,7 @@ public class ServerPojo {
     public void addChildServers(ServerPojo serverPojo) { childServerList.add(serverPojo);}
 
     public void addParentServer(ServerPojo connectedServer){
-        serverPojo.parentServer = connectedServer;
+        this.parentServer = connectedServer;
     }
 
     public String getSecret() {
@@ -58,7 +61,7 @@ public class ServerPojo {
     }
 
     public void setSecret(String secret) {
-        serverPojo.secret = secret;
+        this.secret = secret;
     }
 
     public List<ClientPojo> getClientPojoList() {
@@ -72,5 +75,6 @@ public class ServerPojo {
     public List<ServerPojo> getChildServerList() {
         return childServerList;
     }
+
 
 }

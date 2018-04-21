@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 
+import activitystreamer.Server;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
@@ -45,6 +46,10 @@ public class Control extends Thread {
 		if(Settings.getRemoteHostname()!=null){
 			try {
 				outgoingConnection(new Socket(Settings.getRemoteHostname(),Settings.getRemotePort()));
+				ServerPojo parentServer = new ServerPojo();
+				parentServer.setHostName(Settings.getRemoteHostname() + ":" + Settings.getRemotePort());
+				ServerPojo serverPojo = ServerPojo.getInstance();
+				serverPojo.addParentServer(parentServer);
 			} catch (IOException e) {
 				log.error("failed to make connection to "+Settings.getRemoteHostname()+":"+Settings.getRemotePort()+" :"+e);
 				System.exit(-1);
