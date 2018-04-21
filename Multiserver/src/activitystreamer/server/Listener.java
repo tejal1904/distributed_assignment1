@@ -28,6 +28,7 @@ public class Listener extends Thread{
 			serverPojo.setSocket(serverSocket);
 			serverPojo.setSecret(Settings.getSecret());
 		}
+		System.out.println("secret: "+Settings.getSecret());
 		while(!term){
 			Socket clientSocket;
 			try {

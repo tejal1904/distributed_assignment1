@@ -63,14 +63,4 @@ public class ServerPojo {
         return childServerList;
     }
 
-    @Override
-    public String toString() {
-        return "ServerPojo{" +
-                "socket=" + socket +
-                ", secret='" + secret + '\'' +
-                ", clientPojoList=" + clientPojoList +
-                ", parentServer=" + parentServer +
-                ", childServerList=" + childServerList +
-                '}';
-    }
 }

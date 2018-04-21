@@ -5,6 +5,7 @@ import activitystreamer.server.Connection;
 import activitystreamer.server.ServerPojo;
 import java.io.IOException;
 import java.net.ServerSocket;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
@@ -18,14 +19,14 @@ import activitystreamer.server.ServerPojo;
 public class ControlUtil {
 
 	public static final String REGISTER = "REGISTER";
-	public static final String AUTHENTICATION = "AUTHENTICATION";
+	public static final String AUTHENTICATION = "AUTHENTICATE";
 	public static final String LOGIN = "LOGIN";
 	public static final String ACTIVITY_MESSAGE = "ACTIVITY_MESSAGE";
 	public static final String SERVER_ANNOUNCE = "SERVER_ANNOUNCE";
 	public static final String LOGOUT = "LOGOUT";
 	public static final String ACTIVITY_BROADCAST = "ACTIVITY_BROADCAST";
 	public String result_command = "";
-	public String result_info = "";	
+	public String result_info = "";
 	JSONParser parser = new JSONParser();
 	ServerPojo serverPojo = ServerPojo.getInstance();
 	private static final Logger log = LogManager.getLogger();
@@ -68,6 +69,7 @@ public class ControlUtil {
 						clientPojo.setSocket(connection.getSocket());
 						serverPojo.addClients(clientPojo);
 						System.out.println("not present: added: "+clientPojo + "  "+serverPojo);
+						System.out.println("size of clients: "+serverPojo.getClientPojoList().size());
 						//send lock request to other servers
 					}
 					break;
@@ -79,8 +81,10 @@ public class ControlUtil {
 						childServer.setSocket(new ServerSocket(connection.getSocket().getPort()));
 						childServer.addParentServer(serverPojo);
 						serverPojo.addChildServers(childServer);
-						System.out.println("Authenticated new server -> "+serverPojo);
-					}
+						System.out.println("size of child servers: "+serverPojo.getChildServerList().size());
+						System.out.println("child server -> "+serverPojo.getChildServerList().get(0).getSocket());
+                        System.out.println("parent server -> "+serverPojo.getParentServer().getSocket());
+                    }
 
 					return true;
 				case ControlUtil.LOGIN:
@@ -128,10 +132,6 @@ public class ControlUtil {
 			}
 		}
 		return false;
-	}
-
-	public boolean checkPassword(String password) {
-		return true;
 	}
 
 	private void connectServer(String message) {
