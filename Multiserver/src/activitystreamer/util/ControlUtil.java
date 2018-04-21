@@ -2,9 +2,16 @@ package activitystreamer.util;
 
 import activitystreamer.client.ClientPojo;
 import activitystreamer.server.Connection;
+import activitystreamer.server.Control;
 import activitystreamer.server.ServerPojo;
+
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
+import java.net.Socket;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -71,7 +78,7 @@ public class ControlUtil {
 						System.out.println("not present: added: "+clientPojo + "  "+serverPojo);
 						System.out.println("size of clients: "+serverPojo.getClientPojoList().size());
 						newCommand.put("command", "REGISTER_SUCCESS");
-						connection.writeMsg(newCommand.toJSONString());
+						connection.writeMsg(newCommand.toJSONString());	
 						return false;
 						//send lock request to other servers
 					}
@@ -98,10 +105,12 @@ public class ControlUtil {
 					return true;
 				case ControlUtil.ACTIVITY_MESSAGE:
 					//Activity message functionality
-					return true;
+					return activityMessageUtil(connection, msg);
+//					return true;
 				case ControlUtil.ACTIVITY_BROADCAST:
 					//Activity message functionality
-					return true;
+					return activityBroadcastUtil(connection, msg);
+//					return true;
 				case ControlUtil.SERVER_ANNOUNCE:
 					//Server Announce functionality
 					return true;
@@ -118,6 +127,22 @@ public class ControlUtil {
 
 	}
 
+	private boolean activityBroadcastUtil(Connection connection, JSONObject msg) {
+		try {
+			for(Connection con : Control.getInstance().getConnections())
+			con.writeMsg(msg.toJSONString());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+		return false;
+	}
+
+	private boolean activityMessageUtil(Connection connection, JSONObject msg) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 	@SuppressWarnings("unchecked")
 	private boolean loginUtil(Connection connection, JSONObject msg) throws IOException {
 		String secret;
@@ -129,8 +154,7 @@ public class ControlUtil {
 			newCommand.put("info", "logged in as user " + username);
 			connection.writeMsg(newCommand.toJSONString());
 			return false;
-		}else {
-			
+		}else {			
 			newCommand.put("command", "LOGIN_FAILED");
 			String failureMessage = getFailureMessage(username, secret);			
 			newCommand.put("info",failureMessage);
