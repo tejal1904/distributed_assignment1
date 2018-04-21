@@ -36,7 +36,7 @@ public class ClientSkeleton extends Thread {
 	@SuppressWarnings("unchecked")
 	public void sendActivityObject(JSONObject activityObj){
 		
-		try(Socket socket = new Socket(Settings.getLocalHostname(), Settings.getLocalPort());){
+		try(Socket socket = new Socket(Settings.getRemoteHostname(), Settings.getLocalPort());){
 			// Output and Input Stream
 			DataInputStream in = new DataInputStream(socket.
 					getInputStream());

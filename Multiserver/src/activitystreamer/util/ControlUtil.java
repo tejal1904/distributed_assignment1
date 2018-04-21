@@ -1,6 +1,7 @@
 package activitystreamer.util;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,6 +22,9 @@ public class ControlUtil {
 	public static final String SERVER_ANNOUNCE = "SERVER_ANNOUNCE";
 	public static final String LOGOUT = "LOGOUT";
 	public static final String ACTIVITY_BROADCAST = "ACTIVITY_BROADCAST";
+	public String result_command = "";
+	public String result_info = "";
+	List<String> result;
 	JSONParser parser = new JSONParser();
 	ServerPojo serverPojo = ServerPojo.getInstance();
 	private static final Logger log = LogManager.getLogger();
@@ -71,8 +75,15 @@ public class ControlUtil {
 					return true;
 				case ControlUtil.LOGIN:
 					//Login functionality
-					processLogin(msg);
-					return true;
+					username = (String) msg.get("username");
+					secret = (String) msg.get("password");
+					if(checkCredentials(username,secret)) {
+						connection.writeMsg("LOGIN_SUCCESS");
+						return true;
+					}else {
+						//call failure model
+						return false;
+					}
 				case ControlUtil.LOGOUT:
 					//Logout functionality
 					return true;
@@ -97,24 +108,16 @@ public class ControlUtil {
 		return false;
 
 	}
-			
-	public boolean processLogin(JSONObject msg) {
-		String username = (String) msg.get("username");
-		String password = (String) msg.get("password");
-		if(checkUsername(username) && checkPassword(password)) {
-			return true;
-		}else {
-			return false;
+
+	public boolean checkCredentials(String username,String password) {
+		for(ClientPojo clientPojo : serverPojo.getClientPojoList()){
+			if(username.equals(clientPojo.getUsername())){
+				if(password.equals(clientPojo.getSecret())){
+					return true;
+				}
+			}
 		}
-	}
-
-	public boolean checkUsername(String username) {
-//		Control.getInstance()
-		return true;
-	}
-
-	public boolean checkPassword(String password) {
-		return true;
+		return false;
 	}
 	
 	private void connectServer(String message) {

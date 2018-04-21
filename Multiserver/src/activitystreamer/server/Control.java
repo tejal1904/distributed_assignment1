@@ -1,5 +1,4 @@
 package activitystreamer.server;
-
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -81,8 +80,7 @@ public class Control extends Thread {
 			serverPojo.setSecret(Settings.getSecret());
 		}
 		log.info(connections.get(0).getSocket().getInputStream().toString());
-		return c;
-		
+		return c;		
 	}
 	
 	/*
@@ -100,13 +98,11 @@ public class Control extends Thread {
 		JSONObject newCommand = new JSONObject();
 		newCommand.put("command", "AUTHENTICATE");
 		newCommand.put("secret","gen1p85md2qnq0d59qll3fbcoa");
-	    outwriter.println(newCommand.toString());
+	    outwriter.println("Hello");
     	outwriter.flush();
-		String message = inReader.readLine();	    
-		
+		String message = inReader.readLine();	
 		System.out.println("message Received from server: "+message);
-		return c;
-		
+		return c;		
 	}
 	
 	@Override
@@ -123,8 +119,7 @@ public class Control extends Thread {
 			if(!term){
 				log.debug("doing activity");
 				term=doActivity();
-			}
-			
+			}			
 		}
 		log.info("closing "+connections.size()+" connections");
 		// clean up
@@ -146,3 +141,4 @@ public class Control extends Thread {
 		return connections;
 	}
 }
+
