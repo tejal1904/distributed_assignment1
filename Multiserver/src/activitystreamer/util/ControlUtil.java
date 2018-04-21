@@ -78,26 +78,18 @@ public class ControlUtil {
 					if(secret.equals(serverPojo.getSecret())){
 						ServerPojo childServer = new ServerPojo();
 						childServer.setSecret(secret);
-						childServer.setSocket(new ServerSocket(connection.getSocket().getPort()));
+//						childServer.setSocket(new ServerSocket(connection.getSocket().getPort()));
 						childServer.addParentServer(serverPojo);
 						serverPojo.addChildServers(childServer);
 						System.out.println("size of child servers: "+serverPojo.getChildServerList().size());
-						System.out.println("child server -> "+serverPojo.getChildServerList().get(0).getSocket());
-                        System.out.println("parent server -> "+serverPojo.getParentServer().getSocket());
+						System.out.println("child server -> "+serverPojo.getChildServerList().get(0).getInstance());
+                        System.out.println("parent server -> "+serverPojo.getParentServer().getInstance());
                     }
 
 					return true;
 				case ControlUtil.LOGIN:
 					//Login functionality
-					username = (String) msg.get("username");
-					secret = (String) msg.get("password");
-					if(checkCredentials(username,secret)) {
-						connection.writeMsg("LOGIN_SUCCESS");
-						return true;
-					}else {
-						//call failure model
-						return false;
-					}
+				return loginUtil(connection, msg);
 				case ControlUtil.LOGOUT:
 					//Logout functionality
 					return true;
@@ -123,15 +115,51 @@ public class ControlUtil {
 
 	}
 
+	@SuppressWarnings("unchecked")
+	private boolean loginUtil(Connection connection, JSONObject msg) throws IOException {
+		String secret;
+		String username;
+		JSONObject newCommand = new JSONObject();
+		username = (String) msg.get("username");
+		secret = (String) msg.get("secret");
+		if(checkCredentials(username,secret)) {
+			newCommand.put("command", "LOGIN_SUCCESS");
+			newCommand.put("info", "logged in as user " + username);
+			connection.writeMsg(newCommand.toJSONString());
+			return true;
+		}else {
+			
+			newCommand.put("command", "LOGIN_FAILED");
+			String failureMessage = getFailureMessage(username, secret);
+			
+			newCommand.put("info",failureMessage);
+			connection.writeMsg(newCommand.toJSONString());
+			return false;
+		}
+	}
+
 	public boolean checkCredentials(String username,String password) {
 		for(ClientPojo clientPojo : serverPojo.getClientPojoList()){
-			if(username.equals(clientPojo.getUsername())){
-				if(password.equals(clientPojo.getSecret())){
-					return true;
-				}
+			if(username.equals(clientPojo.getUsername()) && password.equals(clientPojo.getSecret())){
+				return true;
 			}
 		}
 		return false;
+	}
+	
+	public String getFailureMessage(String username,String password) {
+		String message = null;
+		int count = 0;
+		for(ClientPojo clientPojo : serverPojo.getClientPojoList()){
+			count++;
+			if(username.equals(clientPojo.getUsername()) && !password.equals(clientPojo.getSecret())){
+				message = "attempt to login with wrong secret";
+			}
+		}
+		if(count == serverPojo.getClientPojoList().size() && message == null) {
+			message = "client is not registered with the server";
+		}
+		return message;
 	}
 
 	private void connectServer(String message) {

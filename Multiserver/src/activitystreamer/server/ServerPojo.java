@@ -8,13 +8,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ServerPojo {
-    ServerSocket socket;
+//    ServerSocket socket;
     String secret;
     List<ClientPojo> clientPojoList;
     ServerPojo parentServer = null;
     List<ServerPojo> childServerList;
+    int port;
+    String hostName;
 
-    protected static ServerPojo serverPojo = null;
+    public int getPort() {
+		return port;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
+	}
+
+	public String getHostName() {
+		return hostName;
+	}
+
+	public void setHostName(String hostName) {
+		this.hostName = hostName;
+	}
+
+	protected static ServerPojo serverPojo = null;
 
     public static ServerPojo getInstance() {
         if(serverPojo==null){
@@ -33,14 +51,6 @@ public class ServerPojo {
 
     public void addParentServer(ServerPojo connectedServer){
         serverPojo.parentServer = connectedServer;
-    }
-
-    public ServerSocket getSocket() {
-        return socket;
-    }
-
-    public void setSocket(ServerSocket socket) {
-        serverPojo.socket = socket;
     }
 
     public String getSecret() {

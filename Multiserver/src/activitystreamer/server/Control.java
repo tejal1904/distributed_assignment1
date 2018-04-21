@@ -92,7 +92,7 @@ public class Control extends Thread {
 	    BufferedReader inReader = new BufferedReader( new InputStreamReader(in));
 		JSONObject newCommand = new JSONObject();
 		newCommand.put("command", "AUTHENTICATE");
-		newCommand.put("secret",Settings.getSecret());
+		newCommand.put("secret","abc");
 	    outwriter.println(newCommand);
     	outwriter.flush();
 		String message = inReader.readLine();

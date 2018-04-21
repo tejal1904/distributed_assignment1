@@ -46,16 +46,20 @@ public class ClientSkeleton extends Thread {
 		    BufferedReader inReader = new BufferedReader( new InputStreamReader(in));
 		    outwriter.println(activityObj.toString());
 	    	outwriter.flush();    
-			String message = inReader.readLine();	    
+			String message = inReader.readLine();
+			JSONParser parser = new JSONParser();
+			JSONObject outputJson = (JSONObject) parser.parse(message);
 			
 			System.out.println("message Received from server: "+message);
-			JSONObject outputJson =  new JSONObject();
 			outputJson.put("message", message);
 			textFrame.setOutputText(outputJson);
 		    
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}		
 		
