@@ -26,7 +26,7 @@ public class ServerPojo {
         clientPojoList.add(client);
     }
     public void addServer(ServerPojo connectedServer){
-        connectedServer = connectedServer;
+        serverPojo.connectedServer = connectedServer;
     }
 
     public Socket getSocket() {
@@ -34,7 +34,7 @@ public class ServerPojo {
     }
 
     public void setSocket(Socket socket) {
-        this.socket = socket;
+        serverPojo.socket = socket;
     }
 
     public String getSecret() {
@@ -42,23 +42,15 @@ public class ServerPojo {
     }
 
     public void setSecret(String secret) {
-        secret = secret;
+        serverPojo.secret = secret;
     }
 
     public List<ClientPojo> getClientPojoList() {
         return clientPojoList;
     }
 
-    public void setClientPojoList(List<ClientPojo> clientPojoList) {
-        clientPojoList = clientPojoList;
-    }
-
     public ServerPojo getConnectedServer() {
         return connectedServer;
-    }
-
-    public void setConnectedServer(ServerPojo connectedServer) {
-        connectedServer = connectedServer;
     }
 
     @Override
