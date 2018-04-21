@@ -130,6 +130,10 @@ public class ControlUtil {
 		return false;
 	}
 
+	public boolean checkPassword(String password) {
+		return true;
+	}
+
 	private void connectServer(String message) {
 		System.out.println("connected & need to implement authenticate msg");
 	}
