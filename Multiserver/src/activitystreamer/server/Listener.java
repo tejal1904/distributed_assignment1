@@ -33,8 +33,6 @@ public class Listener extends Thread{
 				term=true;
 			}
 		}
-
-		Control.getInstance().initiateConnection();
 	}
 
 	public void setTerm(boolean term) {
