@@ -1,11 +1,17 @@
 package activitystreamer.server;
 
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import activitystreamer.util.ControlUtil;
 import activitystreamer.util.Settings;
@@ -86,6 +92,19 @@ public class Control extends Thread {
 		log.debug("outgoing connection: "+Settings.socketAddress(s));
 		Connection c = new Connection(s);
 		connections.add(c);
+		
+		DataInputStream in = new DataInputStream(s.getInputStream());
+	    DataOutputStream out = new DataOutputStream(s.getOutputStream());
+	    PrintWriter outwriter = new PrintWriter(out, true);
+	    BufferedReader inReader = new BufferedReader( new InputStreamReader(in));
+		JSONObject newCommand = new JSONObject();
+		newCommand.put("command", "AUTHENTICATE");
+		newCommand.put("secret","gen1p85md2qnq0d59qll3fbcoa");
+	    outwriter.println(newCommand.toString());
+    	outwriter.flush();
+		String message = inReader.readLine();	    
+		
+		System.out.println("message Received from server: "+message);
 		return c;
 		
 	}

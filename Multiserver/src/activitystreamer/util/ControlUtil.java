@@ -1,8 +1,5 @@
 package activitystreamer.util;
 
-import activitystreamer.client.ClientPojo;
-import activitystreamer.server.Connection;
-import activitystreamer.server.ServerPojo;
 import java.io.IOException;
 
 import org.apache.logging.log4j.LogManager;
@@ -10,7 +7,10 @@ import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
+import activitystreamer.client.ClientPojo;
 import activitystreamer.server.Connection;
+import activitystreamer.server.ServerPojo;
 
 public class ControlUtil {
 
@@ -67,6 +67,7 @@ public class ControlUtil {
 					break;
 				case ControlUtil.AUTHENTICATION:
 					//Authentication functionality
+					connectServer(message);
 					return true;
 				case ControlUtil.LOGIN:
 					//Login functionality
@@ -114,5 +115,9 @@ public class ControlUtil {
 
 	public boolean checkPassword(String password) {
 		return true;
+	}
+	
+	private void connectServer(String message) {
+		System.out.println("connected & need to implement authenticate msg");
 	}
 }

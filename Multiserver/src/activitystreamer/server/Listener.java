@@ -23,11 +23,12 @@ public class Listener extends Thread{
 	@Override
 	public void run() {
 		log.info("listening for new connections on "+portnum);
+		Control.getInstance().initiateConnection();
 		while(!term){
 			Socket clientSocket;
 			try {
 				clientSocket = serverSocket.accept();
-				Control.getInstance().incomingConnection(clientSocket);
+				Control.getInstance().incomingConnection(clientSocket);				
 			} catch (IOException e) {
 				log.info("received exception, shutting down");
 				term=true;
