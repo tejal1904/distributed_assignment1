@@ -27,6 +27,7 @@ public class ControlUtil {
 	public static final String ACTIVITY_BROADCAST = "ACTIVITY_BROADCAST";
 	public String result_command = "";
 	public String result_info = "";
+	JSONObject newCommand = new JSONObject();
 	JSONParser parser = new JSONParser();
 	ServerPojo serverPojo = ServerPojo.getInstance();
 	private static final Logger log = LogManager.getLogger();
@@ -50,7 +51,6 @@ public class ControlUtil {
 				case ControlUtil.REGISTER:
 					boolean isPresent = false;
 					log.info("Register started");
-                    connection.writeMsg("SUCCESS!");
 					String username = (String) msg.get("username");
 
 					for(ClientPojo clientPojo : serverPojo.getClientPojoList()){
@@ -60,7 +60,7 @@ public class ControlUtil {
 					}
 					if(isPresent){
 						System.out.println("Present");
-						return false;
+						return true;
 
 					}else {
 						ClientPojo clientPojo = new ClientPojo();
@@ -70,9 +70,11 @@ public class ControlUtil {
 						serverPojo.addClients(clientPojo);
 						System.out.println("not present: added: "+clientPojo + "  "+serverPojo);
 						System.out.println("size of clients: "+serverPojo.getClientPojoList().size());
+						newCommand.put("command", "REGISTER_SUCCESS");
+						connection.writeMsg(newCommand.toJSONString());
+						return false;
 						//send lock request to other servers
 					}
-					break;
 				case ControlUtil.AUTHENTICATION:
 					//Authentication functionality
 					if(secret.equals(serverPojo.getSecret())){
@@ -119,22 +121,20 @@ public class ControlUtil {
 	private boolean loginUtil(Connection connection, JSONObject msg) throws IOException {
 		String secret;
 		String username;
-		JSONObject newCommand = new JSONObject();
 		username = (String) msg.get("username");
 		secret = (String) msg.get("secret");
 		if(checkCredentials(username,secret)) {
 			newCommand.put("command", "LOGIN_SUCCESS");
 			newCommand.put("info", "logged in as user " + username);
 			connection.writeMsg(newCommand.toJSONString());
-			return true;
+			return false;
 		}else {
 			
 			newCommand.put("command", "LOGIN_FAILED");
-			String failureMessage = getFailureMessage(username, secret);
-			
+			String failureMessage = getFailureMessage(username, secret);			
 			newCommand.put("info",failureMessage);
 			connection.writeMsg(newCommand.toJSONString());
-			return false;
+			return true;
 		}
 	}
 
