@@ -2,15 +2,17 @@ package activitystreamer.server;
 
 import activitystreamer.client.ClientPojo;
 
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ServerPojo {
-    Socket socket;
+    ServerSocket socket;
     String secret;
     List<ClientPojo> clientPojoList;
-    ServerPojo connectedServer = null;
+    ServerPojo parentServer = null;
+    List<ServerPojo> childServerList;
 
     protected static ServerPojo serverPojo = null;
 
@@ -18,6 +20,7 @@ public class ServerPojo {
         if(serverPojo==null){
             serverPojo=new ServerPojo();
             serverPojo.clientPojoList = new ArrayList<ClientPojo>();
+            serverPojo.childServerList = new ArrayList<ServerPojo>();
         }
         return serverPojo;
     }
@@ -25,15 +28,18 @@ public class ServerPojo {
     public void addClients(ClientPojo client){
         clientPojoList.add(client);
     }
-    public void addServer(ServerPojo connectedServer){
-        serverPojo.connectedServer = connectedServer;
+
+    public void addChildServers(ServerPojo serverPojo) { childServerList.add(serverPojo);}
+
+    public void addParentServer(ServerPojo connectedServer){
+        serverPojo.parentServer = connectedServer;
     }
 
-    public Socket getSocket() {
+    public ServerSocket getSocket() {
         return socket;
     }
 
-    public void setSocket(Socket socket) {
+    public void setSocket(ServerSocket socket) {
         serverPojo.socket = socket;
     }
 
@@ -49,8 +55,12 @@ public class ServerPojo {
         return clientPojoList;
     }
 
-    public ServerPojo getConnectedServer() {
-        return connectedServer;
+    public ServerPojo getParentServer() {
+        return parentServer;
+    }
+
+    public List<ServerPojo> getChildServerList() {
+        return childServerList;
     }
 
     @Override
@@ -59,7 +69,8 @@ public class ServerPojo {
                 "socket=" + socket +
                 ", secret='" + secret + '\'' +
                 ", clientPojoList=" + clientPojoList +
-                ", connectedServer=" + connectedServer +
+                ", parentServer=" + parentServer +
+                ", childServerList=" + childServerList +
                 '}';
     }
 }
