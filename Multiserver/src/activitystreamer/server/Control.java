@@ -102,7 +102,7 @@ public class Control extends Thread {
 		newCommand.put("secret","gen1p85md2qnq0d59qll3fbcoa");
 	    outwriter.println(newCommand.toString());
     	outwriter.flush();
-		String message = inReader.readLine();	    
+		String message = inReader.readLine();
 		
 		System.out.println("message Received from server: "+message);
 		return c;

@@ -11,11 +11,9 @@ import java.net.Socket;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.simple.parser.JSONParser;
 
 import activitystreamer.util.Settings;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 
 public class Connection extends Thread {
@@ -71,7 +69,6 @@ public class Connection extends Thread {
 			while(!term && (data = inreader.readLine())!=null){
 				term=Control.getInstance().process(this,data);
 				log.info("--------"+data);
-				JSONObject registration = (JSONObject) parser.parse(data);
 			}			
 			log.debug("connection closed to "+Settings.socketAddress(socket));
 			Control.getInstance().connectionClosed(this);
@@ -79,8 +76,6 @@ public class Connection extends Thread {
 		} catch (IOException e) {
 			log.error("connection "+Settings.socketAddress(socket)+" closed with exception: "+e);
 			Control.getInstance().connectionClosed(this);
-		} catch (ParseException e) {
-			e.printStackTrace();
 		}
 		open=false;
 	}

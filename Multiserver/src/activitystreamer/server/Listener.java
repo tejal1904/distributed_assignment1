@@ -22,8 +22,7 @@ public class Listener extends Thread{
 	
 	@Override
 	public void run() {
-		log.info("listening for new connections on "+portnum);
-		Control.getInstance().initiateConnection();
+		log.info("listening for new connections on "+portnum);		
 		while(!term){
 			Socket clientSocket;
 			try {
@@ -34,6 +33,8 @@ public class Listener extends Thread{
 				term=true;
 			}
 		}
+
+		Control.getInstance().initiateConnection();
 	}
 
 	public void setTerm(boolean term) {
