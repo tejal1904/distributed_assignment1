@@ -1,6 +1,10 @@
 package activitystreamer.util;
 
+import activitystreamer.client.ClientPojo;
+import activitystreamer.server.Connection;
+import activitystreamer.server.ServerPojo;
 import java.io.IOException;
+import java.net.ServerSocket;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -39,13 +43,14 @@ public class ControlUtil {
 		try {
 			msg = (JSONObject) parser.parse(message);		
 			String command = (String) msg.get("command");
+			String secret = (String) msg.get("secret");
 			switch(command) {
 				case ControlUtil.REGISTER:
 					boolean isPresent = false;
 					log.info("Register started");
                     connection.writeMsg("SUCCESS!");
 					String username = (String) msg.get("username");
-					String secret = (String) msg.get("secret");
+
 					for(ClientPojo clientPojo : serverPojo.getClientPojoList()){
 						if(username.equals(clientPojo.getUsername())){
 							isPresent = true;
@@ -67,7 +72,15 @@ public class ControlUtil {
 					break;
 				case ControlUtil.AUTHENTICATION:
 					//Authentication functionality
-					connectServer(message);
+					if(secret.equals(serverPojo.getSecret())){
+						ServerPojo childServer = new ServerPojo();
+						childServer.setSecret(secret);
+						childServer.setSocket(new ServerSocket(connection.getSocket().getPort()));
+						childServer.addParentServer(serverPojo);
+						serverPojo.addChildServers(childServer);
+						System.out.println("Authenticated new server -> "+serverPojo);
+					}
+
 					return true;
 				case ControlUtil.LOGIN:
 					//Login functionality
@@ -116,7 +129,7 @@ public class ControlUtil {
 	public boolean checkPassword(String password) {
 		return true;
 	}
-	
+
 	private void connectServer(String message) {
 		System.out.println("connected & need to implement authenticate msg");
 	}

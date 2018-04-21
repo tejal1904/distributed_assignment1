@@ -22,7 +22,12 @@ public class Listener extends Thread{
 	
 	@Override
 	public void run() {
-		log.info("listening for new connections on "+portnum);		
+		log.info("listening for new connections on "+portnum);
+		ServerPojo serverPojo = ServerPojo.getInstance();
+		if(serverPojo.getSocket() == null){
+			serverPojo.setSocket(serverSocket);
+			serverPojo.setSecret(Settings.getSecret());
+		}
 		while(!term){
 			Socket clientSocket;
 			try {
