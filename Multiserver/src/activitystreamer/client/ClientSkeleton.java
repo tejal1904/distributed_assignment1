@@ -51,7 +51,6 @@ public class ClientSkeleton extends Thread {
 			JSONObject outputJson = (JSONObject) parser.parse(message);
 			
 			System.out.println("message Received from server: "+message);
-			outputJson.put("message", message);
 			textFrame.setOutputText(outputJson);
 		    
 		} catch (UnknownHostException e) {
