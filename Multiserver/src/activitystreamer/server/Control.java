@@ -106,6 +106,7 @@ public class Control extends Thread {
 		log.debug("outgoing connection: "+Settings.socketAddress(s));
 		Connection c = new Connection(s);
 		c.setClient(false);
+		c.setParentServer(true);
 		connections.add(c);
 
 		DataInputStream in = new DataInputStream(s.getInputStream());
