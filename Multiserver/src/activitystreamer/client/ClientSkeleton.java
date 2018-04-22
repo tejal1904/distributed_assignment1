@@ -62,7 +62,6 @@ public class ClientSkeleton extends Thread {
 			while ((message = inReader.readLine()) != null) {
 				JSONParser parser = new JSONParser();
 				JSONObject outputJson = (JSONObject) parser.parse(message);
-
 				System.out.println("message Received from server: " + message);
 				textFrame.setOutputText(outputJson);
 			}

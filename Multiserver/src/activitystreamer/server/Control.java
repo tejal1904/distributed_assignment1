@@ -22,6 +22,10 @@ public class Control extends Thread {
 	private static boolean term=false;
 	private static Listener listener;
 	protected static Control control = null;
+	private PrintWriter outwriter;
+	private BufferedReader inReader;
+	private int load = 0;
+	
 	public static Control getInstance() {
 		if(control==null){
 			control=new Control();
@@ -79,6 +83,7 @@ public class Control extends Thread {
 		log.debug("incomming connection: "+Settings.socketAddress(s));
 		Connection c = new Connection(s);
 		connections.add(c);
+		load++;
 		log.info(connections.get(0).getSocket().getInputStream().toString());
 		return c;		
 	}
@@ -89,12 +94,13 @@ public class Control extends Thread {
 	public synchronized Connection outgoingConnection(Socket s) throws IOException{
 		log.debug("outgoing connection: "+Settings.socketAddress(s));
 		Connection c = new Connection(s);
+		c.setClient(false);
 		connections.add(c);
 		
 		DataInputStream in = new DataInputStream(s.getInputStream());
 	    DataOutputStream out = new DataOutputStream(s.getOutputStream());
-	    PrintWriter outwriter = new PrintWriter(out, true);
-	    BufferedReader inReader = new BufferedReader( new InputStreamReader(in));
+	    outwriter = new PrintWriter(out, true);
+	    inReader = new BufferedReader( new InputStreamReader(in));
 		JSONObject newCommand = new JSONObject();
 		newCommand.put("command", "AUTHENTICATE");
 		newCommand.put("secret","abc");
@@ -130,6 +136,20 @@ public class Control extends Thread {
 	}
 	
 	public boolean doActivity(){
+		for(Connection connection:Control.connections) {
+			if(connection.isOpen() && !connection.isClient()) {
+				try {
+					JSONObject output = new JSONObject();
+					output.put("command", "SERVER_ANNOUNCE");
+					output.put("load", load);
+					output.put("hostname", connection.getSocket().getInetAddress().getHostName());
+					output.put("port", connection.getSocket().getPort());
+					connection.writeMsg(output.toJSONString());
+				}catch(IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 		return false;
 	}
 	

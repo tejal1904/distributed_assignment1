@@ -15,7 +15,6 @@ import org.json.simple.parser.JSONParser;
 
 import activitystreamer.util.Settings;
 
-
 public class Connection extends Thread {
 	private static final Logger log = LogManager.getLogger();
 	private DataInputStream in;
@@ -25,6 +24,7 @@ public class Connection extends Thread {
 	private boolean open = false;
 	private Socket socket;
 	private boolean term=false;
+	private boolean isClient;
 	JSONParser parser = new JSONParser();
 	
 	Connection(Socket socket) throws IOException{
@@ -34,6 +34,7 @@ public class Connection extends Thread {
 	    outwriter = new PrintWriter(out, true);
 	    this.socket = socket;
 	    open = true;
+	    isClient = true;
 	    start();
 	}
 	
@@ -69,7 +70,7 @@ public class Connection extends Thread {
 			while(!term && (data = inreader.readLine())!=null){
 				term=Control.getInstance().process(this,data);
 				log.info("--------"+data);
-			}			
+			}
 			log.debug("connection closed to "+Settings.socketAddress(socket));
 			Control.getInstance().connectionClosed(this);
 			in.close();
@@ -87,4 +88,13 @@ public class Connection extends Thread {
 	public boolean isOpen() {
 		return open;
 	}
+
+	public boolean isClient() {
+		return isClient;
+	}
+
+	public void setClient(boolean isClient) {
+		this.isClient = isClient;
+	}
+	 
 }

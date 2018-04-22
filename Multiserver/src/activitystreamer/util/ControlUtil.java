@@ -34,7 +34,7 @@ public class ControlUtil {
 	public static final String ACTIVITY_BROADCAST = "ACTIVITY_BROADCAST";
 	public String result_command = "";
 	public String result_info = "";
-	JSONObject newCommand = new JSONObject();
+	JSONObject resultOutput = new JSONObject();
 	JSONParser parser = new JSONParser();
 	ServerPojo serverPojo = ServerPojo.getInstance();
 	private static final Logger log = LogManager.getLogger();
@@ -77,8 +77,8 @@ public class ControlUtil {
 						serverPojo.addClients(clientPojo);
 						System.out.println("not present: added: "+clientPojo + "  "+serverPojo);
 						System.out.println("size of clients: "+serverPojo.getClientPojoList().size());
-						newCommand.put("command", "REGISTER_SUCCESS");
-						connection.writeMsg(newCommand.toJSONString());	
+						resultOutput.put("command", "REGISTER_SUCCESS");
+						connection.writeMsg(resultOutput.toJSONString());	
 						return false;
 						//send lock request to other servers
 					}
@@ -93,10 +93,10 @@ public class ControlUtil {
 						serverPojo.addChildServers(childServer);
 						System.out.println("size of child servers: "+serverPojo.getChildServerList().size());
 						System.out.println("child server -> "+serverPojo.getChildServerList().get(0).getHostName());
-                        System.out.println("parent server -> "+serverPojo.getParentServer().getHostName());
+//                        System.out.println("parent server -> "+serverPojo.getParentServer().getHostName());
                     }
 
-					return true;
+					return false;
 				case ControlUtil.LOGIN:
 					//Login functionality
 				return loginUtil(connection, msg);
@@ -113,9 +113,13 @@ public class ControlUtil {
 //					return true;
 				case ControlUtil.SERVER_ANNOUNCE:
 					//Server Announce functionality
-					return true;
-				default:
+					System.out.println("Received!");
 					return false;
+				default:
+					resultOutput.put("command", "INVALID_MESSAGE");
+					resultOutput.put("info", "The received message did not contain a command");
+					connection.writeMsg(resultOutput.toJSONString());
+					return true;
 			}
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
@@ -150,15 +154,15 @@ public class ControlUtil {
 		username = (String) msg.get("username");
 		secret = (String) msg.get("secret");
 		if(checkCredentials(username,secret)) {
-			newCommand.put("command", "LOGIN_SUCCESS");
-			newCommand.put("info", "logged in as user " + username);
-			connection.writeMsg(newCommand.toJSONString());
+			resultOutput.put("command", "LOGIN_SUCCESS");
+			resultOutput.put("info", "logged in as user " + username);
+			connection.writeMsg(resultOutput.toJSONString());
 			return false;
 		}else {			
-			newCommand.put("command", "LOGIN_FAILED");
+			resultOutput.put("command", "LOGIN_FAILED");
 			String failureMessage = getFailureMessage(username, secret);			
-			newCommand.put("info",failureMessage);
-			connection.writeMsg(newCommand.toJSONString());
+			resultOutput.put("info",failureMessage);
+			connection.writeMsg(resultOutput.toJSONString());
 			return true;
 		}
 	}
