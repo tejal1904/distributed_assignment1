@@ -1,14 +1,11 @@
 package activitystreamer.server;
 
-import activitystreamer.client.ClientPojo;
-import com.sun.xml.internal.bind.v2.TODO;
-
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import activitystreamer.client.ClientPojo;
 
 public class ServerPojo {
 

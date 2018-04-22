@@ -1,29 +1,16 @@
 package activitystreamer.util;
 
-import activitystreamer.client.ClientPojo;
-import activitystreamer.server.Connection;
-import activitystreamer.server.Control;
-import activitystreamer.server.ServerPojo;
-
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.HashMap;
 import java.util.Map;
 
-import com.sun.org.apache.bcel.internal.generic.RET;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import activitystreamer.client.ClientPojo;
 import activitystreamer.server.Connection;
+import activitystreamer.server.Control;
 import activitystreamer.server.ServerPojo;
 
 public class ControlUtil {
