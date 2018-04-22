@@ -34,7 +34,7 @@ public class Listener extends Thread{
 			Socket clientSocket;
 			try {
 				clientSocket = serverSocket.accept();
-				Control.getInstance().incomingConnection(clientSocket);				
+				Control.getInstance().incomingConnection(clientSocket);
 			} catch (IOException e) {
 				log.info("received exception, shutting down");
 				term=true;
@@ -46,7 +46,9 @@ public class Listener extends Thread{
 		this.term = term;
 		if(term) interrupt();
 	}
-	
-	
+
+	public ServerSocket getServerSocket() {
+		return serverSocket;
+	}
 }
 

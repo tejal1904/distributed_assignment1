@@ -23,8 +23,9 @@ public class Connection extends Thread {
 	private PrintWriter outwriter;
 	private boolean open = false;
 	private Socket socket;
-	private boolean term=false;
-	private boolean isClient;
+	private boolean term = false;
+	private boolean isClient = true;
+	private boolean loggedInClient = false;
 	JSONParser parser = new JSONParser();
 	
 	Connection(Socket socket) throws IOException{
@@ -34,7 +35,6 @@ public class Connection extends Thread {
 	    outwriter = new PrintWriter(out, true);
 	    this.socket = socket;
 	    open = true;
-	    isClient = true;
 	    start();
 	}
 	
@@ -96,5 +96,12 @@ public class Connection extends Thread {
 	public void setClient(boolean isClient) {
 		this.isClient = isClient;
 	}
-	 
+
+	public boolean isLoggedInClient() {
+		return loggedInClient;
+	}
+
+	public void setLoggedInClient(boolean loggedInClient) {
+		this.loggedInClient = loggedInClient;
+	}
 }

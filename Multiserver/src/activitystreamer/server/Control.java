@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import activitystreamer.Server;
 import org.apache.logging.log4j.LogManager;
@@ -15,36 +17,39 @@ import org.json.simple.JSONObject;
 
 import activitystreamer.util.ControlUtil;
 import activitystreamer.util.Settings;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 public class Control extends Thread {
 	private static final Logger log = LogManager.getLogger();
 	private static ArrayList<Connection> connections;
+	private Map<String, String> registeredClients;
 	private static boolean term=false;
 	private static Listener listener;
 	protected static Control control = null;
 	private PrintWriter outwriter;
 	private BufferedReader inReader;
-	private int load = 0;
-	
+	private static int load;
 	public static Control getInstance() {
 		if(control==null){
 			control=new Control();
-		} 
+		}
 		return control;
 	}
-	
+
 	public Control() {
 		// initialize the connections array
 		connections = new ArrayList<Connection>();
+        registeredClients = new HashMap<String, String>();
 		// start a listener
 		try {
 			listener = new Listener();
 		} catch (IOException e1) {
 			log.fatal("failed to startup a listening thread: "+e1);
 			System.exit(-1);
-		}	
+		}
 	}
-	
+
 	public void initiateConnection(){
 		// make a connection to another server if remote hostname is supplied
 		if(Settings.getRemoteHostname()!=null){
@@ -60,7 +65,7 @@ public class Control extends Thread {
 			}
 		}
 	}
-	
+
 	/*
 	 * Processing incoming messages from the connection.
 	 * Return true if the connection should close.
@@ -68,14 +73,14 @@ public class Control extends Thread {
 	public synchronized boolean process(Connection con,String msg){
 		return ControlUtil.getInstance().processCommands(con,msg);
 	}
-	
+
 	/*
 	 * The connection has been closed by the other party.
 	 */
 	public synchronized void connectionClosed(Connection con){
 		if(!term) connections.remove(con);
 	}
-	
+
 	/*
 	 * A new incoming connection has been established, and a reference is returned to it
 	 */
@@ -83,11 +88,17 @@ public class Control extends Thread {
 		log.debug("incomming connection: "+Settings.socketAddress(s));
 		Connection c = new Connection(s);
 		connections.add(c);
-		load++;
+		load = 0;
+		for(Connection connection:connections){
+			if(connection.isClient() == true){
+				load++;
+			}
+		}
+		System.out.println("Load - > "+load);
 		log.info(connections.get(0).getSocket().getInputStream().toString());
-		return c;		
+		return c;
 	}
-	
+
 	/*
 	 * A new outgoing connection has been established, and a reference is returned to it
 	 */
@@ -96,7 +107,7 @@ public class Control extends Thread {
 		Connection c = new Connection(s);
 		c.setClient(false);
 		connections.add(c);
-		
+
 		DataInputStream in = new DataInputStream(s.getInputStream());
 	    DataOutputStream out = new DataOutputStream(s.getOutputStream());
 	    outwriter = new PrintWriter(out, true);
@@ -108,9 +119,9 @@ public class Control extends Thread {
     	outwriter.flush();
 		String message = inReader.readLine();
 		System.out.println("message Received from server: "+message);
-		return c;		
+		return c;
 	}
-	
+
 	@Override
 	public void run(){
 		log.info("using activity interval of "+Settings.getActivityInterval()+" milliseconds");
@@ -125,7 +136,7 @@ public class Control extends Thread {
 			if(!term){
 				log.debug("doing activity");
 				term=doActivity();
-			}			
+            }
 		}
 		log.info("closing "+connections.size()+" connections");
 		// clean up
@@ -134,7 +145,7 @@ public class Control extends Thread {
 		}
 		listener.setTerm(true);
 	}
-	
+
 	public boolean doActivity(){
 		for(Connection connection:Control.connections) {
 			if(connection.isOpen() && !connection.isClient()) {
@@ -159,6 +170,18 @@ public class Control extends Thread {
 	
 	public final ArrayList<Connection> getConnections() {
 		return connections;
+	}
+
+    public int getLoad() {
+        return load;
+    }
+
+	public void addRegisteredClients(String username, String secret){
+		registeredClients.put(username,secret);
+	}
+
+	public Map<String, String> getRegisteredClients() {
+		return registeredClients;
 	}
 }
 

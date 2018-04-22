@@ -6,6 +6,7 @@ public class ClientPojo {
     String username;
     String secret;
     Socket socket;
+    boolean isLoggedIn;
 
     public ClientPojo() {
     }
@@ -38,6 +39,14 @@ public class ClientPojo {
 
     public void setSocket(Socket socket) {
         this.socket = socket;
+    }
+
+    public boolean isLoggedIn() {
+        return isLoggedIn;
+    }
+
+    public void setLoggedIn(boolean loggedIn) {
+        isLoggedIn = loggedIn;
     }
 
     @Override
