@@ -78,7 +78,7 @@ public class ControlUtil {
 								output.put("secret",secret);
 								connection1.writeMsg(output.toJSONString());
 							}
-						}						
+						}
 					}else{
 						resultOutput.put("command", "REGISTER_FAILED");
 						resultOutput.put("info",username + " is already registered with the system");
@@ -166,6 +166,7 @@ public class ControlUtil {
 							}
 						}
 					}
+					return false;
 
 				case ControlUtil.LOCK_DENIED:
 					username = (String) msg.get("username");
@@ -185,6 +186,7 @@ public class ControlUtil {
 						connection1.writeMsg(resultOutput.toJSONString());
 						return true;
 					}
+					return false;
 
 				default:
 					resultOutput.put("command", "INVALID_MESSAGE");
