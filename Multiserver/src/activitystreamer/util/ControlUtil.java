@@ -4,6 +4,7 @@ import activitystreamer.server.Connection;
 import activitystreamer.server.Control;
 import activitystreamer.server.ServerPojo;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,8 +24,8 @@ public class ControlUtil {
 	public static final String LOCK_REQUEST = "LOCK_REQUEST";
 	public static final String LOCK_DENIED = "LOCK_DENIED";
 	public static final String LOCK_ALLOWED = "LOCK_ALLOWED";
-	public static Map<String, Integer> lockAllowedCount;
-	public static Map<String,JSONObject> serverList;
+	public static Map<String, Integer> lockAllowedCount = new HashMap<>();
+	public static Map<String,JSONObject> serverList = new HashMap<>();
 
 	public String result_command = "";
 	public String result_info = "";
