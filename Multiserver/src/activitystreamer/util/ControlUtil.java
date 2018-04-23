@@ -119,8 +119,6 @@ public class ControlUtil {
 					//process received lock request
 					username = (String) msg.get("username");
 					String data = processLockRequest(msg);
-					//TODO: need to send the lock_allowed and lock_denied commands to all others servers
-					//TODO: write code to receive lock_allowed and lock_denied
 					if(data.equals(LOCK_ALLOWED)){
 						for(Connection connection1:controlInstance.getConnections()){
 							boolean isSameConnection = (connection1.getSocket().getInetAddress() == connection.getSocket().getInetAddress());
