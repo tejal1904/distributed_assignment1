@@ -24,6 +24,7 @@ public class Control extends Thread {
 	private static final Logger log = LogManager.getLogger();
 	private static ArrayList<Connection> connections;
 	private Map<String, String> registeredClients;
+	private Map<JSONObject,Connection> toBeRegisteredClients;
 	private static boolean term=false;
 	private static Listener listener;
 	protected static Control control = null;
@@ -41,6 +42,7 @@ public class Control extends Thread {
 		// initialize the connections array
 		connections = new ArrayList<Connection>();
         registeredClients = new HashMap<String, String>();
+        toBeRegisteredClients = new HashMap<JSONObject, Connection>();
 		// start a listener
 		try {
 			listener = new Listener();
@@ -106,7 +108,6 @@ public class Control extends Thread {
 		log.debug("outgoing connection: "+Settings.socketAddress(s));
 		Connection c = new Connection(s);
 		c.setClient(false);
-		c.setParentServer(true);
 		connections.add(c);
 
 		DataInputStream in = new DataInputStream(s.getInputStream());
@@ -183,6 +184,14 @@ public class Control extends Thread {
 
 	public Map<String, String> getRegisteredClients() {
 		return registeredClients;
+	}
+
+	public void addToBeRegisteredClients(JSONObject username, Connection secret){
+		toBeRegisteredClients.put(username, secret);
+	}
+
+	public Map<JSONObject, Connection> getToBeRegisteredClients() {
+		return toBeRegisteredClients;
 	}
 }
 
