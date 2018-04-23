@@ -146,7 +146,10 @@ public class ControlUtil {
 					}
 				case  ControlUtil.LOCK_ALLOWED:
 					username = (String) msg.get("username");
-					int count = lockAllowedCount.get(username);
+					int count=0;
+					if(null != lockAllowedCount.get(username)){
+						count = lockAllowedCount.get(username);
+					}
 					lockAllowedCount.put(username, count+1);
 					int totalServers = 0;
 					for(Connection connection1:controlInstance.getConnections()){
