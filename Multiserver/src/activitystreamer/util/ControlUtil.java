@@ -106,8 +106,7 @@ public class ControlUtil {
                     connection.setClient(false);
 					return activityBroadcastUtil(connection, msg);
 				case ControlUtil.SERVER_ANNOUNCE:
-				    connection.setClient(false);
-					System.out.println("Received!");
+				    connection.setClient(false);				    
 					return serverAnnounce(connection,msg);
 				case ControlUtil.LOCK_REQUEST:
 					//process received lock request
@@ -162,8 +161,47 @@ public class ControlUtil {
 		}
 	}
 
-	private boolean serverAnnounce(Connection connection, JSONObject msg) {
-	    return false;
+	private boolean serverAnnounce(Connection connection, JSONObject msg) throws IOException {
+		int load = (int) msg.get("load");		//
+		int currentLoad = 0;
+		boolean isAuthenticated = false;
+		Connection redirectServer = null;
+		//testing server authentication
+		for(Connection con: controlInstance.getConnections()) {
+			if(con.getSocket().getInetAddress() == connection.getSocket().getInetAddress()) {
+				isAuthenticated = true;
+			}
+			if(con.isClient()) {
+				currentLoad++;
+			}
+			if(currentLoad <= load-2) {
+				redirectServer = con;
+			}else {
+				redirectServer = null;
+			}
+		}
+		if(!isAuthenticated) {
+			//call invalid_message procedure
+			return true;
+		}
+		if(redirectServer != null) {
+			resultOutput.put("command", "REDIRECT");
+			resultOutput.put("hostname",redirectServer.getSocket().getInetAddress().getHostAddress());
+			resultOutput.put("port",redirectServer.getSocket().getPort());
+			connection.writeMsg(resultOutput.toJSONString());
+			return true;
+		}else {
+			for(Connection con: controlInstance.getConnections()) {
+				if(!(con.isClient())) {
+					resultOutput.put("command", "SERVER_ANNOUNCE");
+					resultOutput.put("load", load);
+					resultOutput.put("hostname", connection.getSocket().getInetAddress().getHostAddress());
+					resultOutput.put("port", connection.getSocket().getPort());					
+					con.writeMsg(resultOutput.toJSONString());					
+				}
+			}
+			return false;
+		}	    
     }
 
     private boolean activityBroadcastUtil(Connection connection, JSONObject msg) {
