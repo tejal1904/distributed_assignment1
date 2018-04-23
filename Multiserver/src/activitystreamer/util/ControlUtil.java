@@ -41,15 +41,22 @@ public class ControlUtil {
 		return controlUtil;
 	}	
 	
+	@SuppressWarnings("unchecked")
 	public boolean processCommands(Connection connection, String message) {
 		JSONObject msg;
 		try {
 			msg = (JSONObject) parser.parse(message);		
 			String command = (String) msg.get("command");
-			String secret = (String) msg.get("secret");
+			if(command == null ) {
+				resultOutput.put("command", "INVALID_MESSAGE");
+				resultOutput.put("info", "The received message did not contain a command");
+				connection.writeMsg(resultOutput.toJSONString());
+				return true;
+			}
 			switch(command) {
 				case ControlUtil.REGISTER:
                     String username = (String) msg.get("username");
+                    String secret = (String) msg.get("secret");
                     int clientSize = controlInstance.getRegisteredClients().size();
 				    controlInstance.addRegisteredClients(username,secret);
                     if((clientSize + 1) == controlInstance.getRegisteredClients().size()){
@@ -81,14 +88,10 @@ public class ControlUtil {
                     }
 
 				case ControlUtil.AUTHENTICATION:
+					secret = (String) msg.get("secret");
 					String info = authenticateServer(connection,msg);
 					if(info.equals("SUCCESS")){
 						return false;
-					}else if(info.equals("INVALID_MESSAGE")){
-						resultOutput.put("command",info);
-						resultOutput.put("info","Server already successfully authenticated");
-						connection.writeMsg(resultOutput.toJSONString());
-						return true;
 					}else if(info.equals("AUTHENTICATION_FAIL")){
 						resultOutput.put("command",info);
 						resultOutput.put("info","the supplied secret is incorrect: " + secret);
@@ -122,13 +125,19 @@ public class ControlUtil {
 
 				default:
 					resultOutput.put("command", "INVALID_MESSAGE");
-					resultOutput.put("info", "The received message did not contain a command");
+					resultOutput.put("info", "Invalid command");
 					connection.writeMsg(resultOutput.toJSONString());
 					return true;
 			}
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+				resultOutput.put("command","INVALID_MESSAGE");
+				resultOutput.put("info","JSON parse error while parsing message");
+				try {
+					connection.writeMsg(resultOutput.toJSONString());
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+				return true;
 		}catch (IOException e) {
             e.printStackTrace();
         }
@@ -148,12 +157,7 @@ public class ControlUtil {
 	private String authenticateServer(Connection connection, JSONObject msg) {
 		String username = (String) msg.get("username");
 		String secret = (String) msg.get("secret");
-		for(Connection connection1:controlInstance.getConnections()){
-			if(connection1.getSocket().getInetAddress().equals(connection.getSocket().getInetAddress()) && connection1.getSocket().getPort() ==
-					connection.getSocket().getPort()){
-				return "INVALID_MESSAGE";
-			}
-		}
+		
 		if(Settings.getSecret().equals(secret)){
 			connection.setClient(false);
 			return "SUCCESS";
