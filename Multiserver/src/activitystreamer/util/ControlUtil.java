@@ -63,7 +63,7 @@ public class ControlUtil {
                     if(!controlInstance.getRegisteredClients().containsKey(username)){
 						controlInstance.addToBeRegisteredClients(msg,connection);
 						lockAllowedCount.put(username,0);
-						if(serverList.size() == 0) {
+						if(serverList.size() < 2) {
 							resultOutput.put("command", "REGISTER_SUCCESS");
 							resultOutput.put("info","register success for "+username);
 							connection.writeMsg(resultOutput.toJSONString());
