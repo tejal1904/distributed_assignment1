@@ -221,10 +221,9 @@ public class ControlUtil {
 	}
 
 	private boolean serverAnnounce(JSONObject msg) throws IOException {
-		if(serverList.get("id") != null){
+		if(null != msg.get("id")){
 			serverList.put((String)msg.get("id"), msg);
 		}
-
 		return false;
     }
 
