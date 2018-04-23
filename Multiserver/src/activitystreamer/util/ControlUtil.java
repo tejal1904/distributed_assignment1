@@ -20,6 +20,10 @@ public class ControlUtil {
 	public static final String SERVER_ANNOUNCE = "SERVER_ANNOUNCE";
 	public static final String LOGOUT = "LOGOUT";
 	public static final String ACTIVITY_BROADCAST = "ACTIVITY_BROADCAST";
+	public static final String LOCK_REQUEST = "LOCK_REQUEST";
+	public static final String LOCK_DENIED = "LOCK_DENIED";
+	public static final String LOCK_ALLOWED = "LOCK_ALLOWED";
+
 	public String result_command = "";
 	public String result_info = "";
 	JSONObject resultOutput = new JSONObject();
@@ -52,6 +56,16 @@ public class ControlUtil {
                         connection.setClient(true);
                         resultOutput.put("command", "REGISTER_SUCCESS");
                         connection.writeMsg(resultOutput.toJSONString());
+                        // send lock request to all other servers
+						for(Connection connection1:controlInstance.getConnections()){
+							if(!connection1.isClient() && !connection1.isParentServer()){
+								JSONObject output = new JSONObject();
+								output.put("command",LOCK_REQUEST);
+								output.put("username",username);
+								output.put("secret",secret);
+								connection1.writeMsg(output.toJSONString());
+							}
+						}
                         return false;
                     }else if(connection.isLoggedInClient() == true) {
                         resultOutput.put("command", "INVALID_MESSAGE");
@@ -66,53 +80,25 @@ public class ControlUtil {
                         return true;
                     }
 
-					/*boolean isPresent = false;
-					log.info("Register started");
-					String username = (String) msg.get("username");
-
-					for(ClientPojo clientPojo : serverPojo.getClientPojoList()){
-						if(username.equals(clientPojo.getUsername())){
-							isPresent = true;
-						}
-					}
-					if(isPresent){
-						System.out.println("Present");
-						return true;
-
-					}else {
-                        connection.setClient(true);
-                        connection.setLoggedInClient(false);
-						ClientPojo clientPojo = new ClientPojo();
-						clientPojo.setUsername(username);
-						clientPojo.setSecret(secret);
-						clientPojo.setSocket(connection.getSocket());
-						serverPojo.addClients(clientPojo);
-						System.out.println("not present: added: "+clientPojo + "  "+serverPojo);
-						System.out.println("size of clients: "+serverPojo.getClientPojoList().size());
-						resultOutput.put("command", "REGISTER_SUCCESS");
-						connection.writeMsg(resultOutput.toJSONString());*/
-						//send lock request to other servers
-
 				case ControlUtil.AUTHENTICATION:
-					if(secret.equals(serverPojo.getSecret())){
-                        connection.setClient(false);
-						ServerPojo childServer = new ServerPojo();
-						childServer.setSecret(secret);
-						childServer.setPort(connection.getSocket().getPort());
-						childServer.setHostName(connection.getSocket().getInetAddress()+":"+connection.getSocket().getPort());
-						childServer.addParentServer(serverPojo);
-						serverPojo.addChildServers(childServer);
-						System.out.println("size of child servers: "+serverPojo.getChildServerList().size());
-						System.out.println("child server -> "+serverPojo.getChildServerList().get(0).getHostName());
-//                        System.out.println("parent server -> "+serverPojo.getParentServer().getHostName());
-                    }
-
-					return false;
+					String info = authenticateServer(connection,msg);
+					if(info.equals("SUCCESS")){
+						return false;
+					}else if(info.equals("INVALID_MESSAGE")){
+						resultOutput.put("command",info);
+						resultOutput.put("info","Server already successfully authenticated");
+						connection.writeMsg(resultOutput.toJSONString());
+						return true;
+					}else if(info.equals("AUTHENTICATION_FAIL")){
+						resultOutput.put("command",info);
+						resultOutput.put("info","the supplied secret is incorrect: " + secret);
+						connection.writeMsg(resultOutput.toJSONString());
+						return true;
+					}
 				case ControlUtil.LOGIN:
 				    return loginUtil(connection, msg);
 				case ControlUtil.LOGOUT:
 				    connection.setLoggedInClient(false);
-					//Logout functionality
 					return true;
 				case ControlUtil.ACTIVITY_MESSAGE:
 					return activityMessageUtil(connection, msg);
@@ -123,6 +109,17 @@ public class ControlUtil {
 				    connection.setClient(false);
 					System.out.println("Received!");
 					return serverAnnounce(connection,msg);
+				case ControlUtil.LOCK_REQUEST:
+					//process received lock request
+					String data = processLockRequest(connection,msg);
+					//TODO: need to send the lock_allowed and lock_denied commands to all others servers
+					//TODO: write code to receive lock_allowed and lock_denied
+					if(data.equals(LOCK_ALLOWED)){
+						return false;
+					}else if(data.equals(LOCK_DENIED)){
+						return true;
+					}
+
 				default:
 					resultOutput.put("command", "INVALID_MESSAGE");
 					resultOutput.put("info", "The received message did not contain a command");
@@ -139,7 +136,33 @@ public class ControlUtil {
 
 	}
 
-    private boolean serverAnnounce(Connection connection, JSONObject msg) {
+	private String processLockRequest(Connection connection, JSONObject msg) {
+		String username = (String) msg.get("username");
+		if(controlInstance.getRegisteredClients().containsKey(username)){
+			return LOCK_DENIED;
+		}else {
+			return LOCK_ALLOWED;
+		}
+	}
+
+	private String authenticateServer(Connection connection, JSONObject msg) {
+		String username = (String) msg.get("username");
+		String secret = (String) msg.get("secret");
+		for(Connection connection1:controlInstance.getConnections()){
+			if(connection1.getSocket().getInetAddress().equals(connection.getSocket().getInetAddress()) && connection1.getSocket().getPort() ==
+					connection.getSocket().getPort()){
+				return "INVALID_MESSAGE";
+			}
+		}
+		if(Settings.getSecret().equals(secret)){
+			connection.setClient(false);
+			return "SUCCESS";
+		}else {
+			return "AUTHENTICATION_FAIL";
+		}
+	}
+
+	private boolean serverAnnounce(Connection connection, JSONObject msg) {
 	    return false;
     }
 
@@ -149,7 +172,6 @@ public class ControlUtil {
 			    if((con.isClient() && con.isLoggedInClient()) || (!con.isClient() && !con.isParentServer())){
                     con.writeMsg(msg.toJSONString());
                 }
-
             }
 
 		} catch (IOException e) {
