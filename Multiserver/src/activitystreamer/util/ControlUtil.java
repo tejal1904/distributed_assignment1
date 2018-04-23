@@ -105,7 +105,7 @@ public class ControlUtil {
 					return activityBroadcastUtil(connection, msg);
 				case ControlUtil.SERVER_ANNOUNCE:
 				    connection.setClient(false);				    
-					return serverAnnounce(connection,msg);
+					return serverAnnounce(msg);
 				case ControlUtil.LOCK_REQUEST:
 					//process received lock request
 					username = (String) msg.get("username");
@@ -157,7 +157,6 @@ public class ControlUtil {
 							}
 						}
 					}
-
 
 				case ControlUtil.LOCK_DENIED:
 					username = (String) msg.get("username");
@@ -221,8 +220,11 @@ public class ControlUtil {
 		}
 	}
 
-	private boolean serverAnnounce(Connection connection, JSONObject msg) throws IOException {
-		serverList.put((String)msg.get("id"), msg);
+	private boolean serverAnnounce(JSONObject msg) throws IOException {
+		if(serverList.get("id") != null){
+			serverList.put((String)msg.get("id"), msg);
+		}
+
 		return false;
     }
 
