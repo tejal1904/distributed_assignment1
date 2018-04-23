@@ -23,6 +23,7 @@ public class ControlUtil {
 	public static final String LOCK_REQUEST = "LOCK_REQUEST";
 	public static final String LOCK_DENIED = "LOCK_DENIED";
 	public static final String LOCK_ALLOWED = "LOCK_ALLOWED";
+	public static Map<String, Integer> lockAllowedCount;
 
 	public String result_command = "";
 	public String result_info = "";
@@ -47,6 +48,7 @@ public class ControlUtil {
 		try {
 			msg = (JSONObject) parser.parse(message);		
 			String command = (String) msg.get("command");
+            String secret = (String) msg.get("secret");
 			if(command == null ) {
 				resultOutput.put("command", "INVALID_MESSAGE");
 				resultOutput.put("info", "The received message did not contain a command");
@@ -56,16 +58,11 @@ public class ControlUtil {
 			switch(command) {
 				case ControlUtil.REGISTER:
                     String username = (String) msg.get("username");
-                    String secret = (String) msg.get("secret");
-                    int clientSize = controlInstance.getRegisteredClients().size();
-				    controlInstance.addRegisteredClients(username,secret);
-                    if((clientSize + 1) == controlInstance.getRegisteredClients().size()){
-                        connection.setClient(true);
-                        resultOutput.put("command", "REGISTER_SUCCESS");
-                        connection.writeMsg(resultOutput.toJSONString());
-                        // send lock request to all other servers
+                    if(!controlInstance.getRegisteredClients().containsKey(username)){
+						controlInstance.addToBeRegisteredClients(msg,connection);
+						lockAllowedCount.put(username,0);
 						for(Connection connection1:controlInstance.getConnections()){
-							if(!connection1.isClient() && !connection1.isParentServer()){
+							if(!connection1.isClient()){
 								JSONObject output = new JSONObject();
 								output.put("command",LOCK_REQUEST);
 								output.put("username",username);
@@ -73,22 +70,19 @@ public class ControlUtil {
 								connection1.writeMsg(output.toJSONString());
 							}
 						}
-                        return false;
-                    }else if(connection.isLoggedInClient() == true) {
+					}else{
+						resultOutput.put("command", "REGISTER_FAILED");
+						resultOutput.put("info",username + " is already registered with the system");
+						connection.writeMsg(resultOutput.toJSONString());
+						return true;
+					}
+					if(connection.isLoggedInClient() == true) {
                         resultOutput.put("command", "INVALID_MESSAGE");
                         resultOutput.put("info","Client already logged in to the system");
                         connection.writeMsg(resultOutput.toJSONString());
                         return true;
-
-                    }else{
-                        resultOutput.put("command", "REGISTER_FAILED");
-                        resultOutput.put("info",username + " is already registered with the system");
-                        connection.writeMsg(resultOutput.toJSONString());
-                        return true;
                     }
-
 				case ControlUtil.AUTHENTICATION:
-					secret = (String) msg.get("secret");
 					String info = authenticateServer(connection,msg);
 					if(info.equals("SUCCESS")){
 						return false;
@@ -114,12 +108,73 @@ public class ControlUtil {
 					return serverAnnounce(connection,msg);
 				case ControlUtil.LOCK_REQUEST:
 					//process received lock request
-					String data = processLockRequest(connection,msg);
+					username = (String) msg.get("username");
+					String data = processLockRequest(msg);
 					//TODO: need to send the lock_allowed and lock_denied commands to all others servers
 					//TODO: write code to receive lock_allowed and lock_denied
 					if(data.equals(LOCK_ALLOWED)){
-						return false;
+						for(Connection connection1:controlInstance.getConnections()){
+							boolean isSameConnection = (connection1.getSocket().getInetAddress() == connection.getSocket().getInetAddress());
+							if(!isSameConnection){
+								resultOutput.put("command",data);
+								resultOutput.put("username", username);
+								resultOutput.put("secret", secret);
+								connection1.writeMsg(resultOutput.toJSONString());
+								return false;
+							}
+						}
 					}else if(data.equals(LOCK_DENIED)){
+						for(Connection connection1:controlInstance.getConnections()){
+							boolean isSameConnection = (connection1.getSocket().getInetAddress() == connection.getSocket().getInetAddress());
+							if(!isSameConnection){
+								resultOutput.put("command",data);
+								resultOutput.put("username", username);
+								resultOutput.put("secret", secret);
+								connection1.writeMsg(resultOutput.toJSONString());
+								return true;
+							}
+						}
+					}
+				case  ControlUtil.LOCK_ALLOWED:
+					username = (String) msg.get("username");
+					int count = lockAllowedCount.get(username);
+					lockAllowedCount.put(username, count+1);
+					int totalServers = 0;
+					for(Connection connection1:controlInstance.getConnections()){
+						if(!connection1.isClient()){
+							totalServers++;
+						}
+					}
+					if(totalServers == lockAllowedCount.get(username)){
+						for(Map.Entry<JSONObject,Connection> entry:controlInstance.getToBeRegisteredClients().entrySet()){
+							if(username.equals(entry.getKey().get("username").toString())){
+								lockAllowedCount.remove(username);
+								controlInstance.addRegisteredClients(username,entry.getKey().get("secret").toString());
+								resultOutput.put("command","REGISTER_SUCCESS");
+								resultOutput.put("info","register success for "+username);
+								entry.getValue().writeMsg(resultOutput.toJSONString());
+								return false;
+							}
+						}
+					}
+
+
+				case ControlUtil.LOCK_DENIED:
+					username = (String) msg.get("username");
+					JSONObject object = null;
+					Connection connection1 = null;
+					for(Map.Entry<JSONObject,Connection> entry:controlInstance.getToBeRegisteredClients().entrySet()){
+						if(username.equals(entry.getKey().get("username").toString())){
+							object = entry.getKey();
+							connection1 = entry.getValue();
+						}
+					}
+					if(null != connection1 && null != object){
+						controlInstance.getToBeRegisteredClients().remove(object);
+						lockAllowedCount.remove(username);
+						resultOutput.put("command", "REGISTER_FAILED");
+						resultOutput.put("info", object.get("username").toString() + " is already registered with the system");
+						connection1.writeMsg(resultOutput.toJSONString());
 						return true;
 					}
 
@@ -145,7 +200,7 @@ public class ControlUtil {
 
 	}
 
-	private String processLockRequest(Connection connection, JSONObject msg) {
+	private String processLockRequest(JSONObject msg) {
 		String username = (String) msg.get("username");
 		if(controlInstance.getRegisteredClients().containsKey(username)){
 			return LOCK_DENIED;
@@ -157,7 +212,7 @@ public class ControlUtil {
 	private String authenticateServer(Connection connection, JSONObject msg) {
 		String username = (String) msg.get("username");
 		String secret = (String) msg.get("secret");
-		
+
 		if(Settings.getSecret().equals(secret)){
 			connection.setClient(false);
 			return "SUCCESS";
@@ -173,7 +228,8 @@ public class ControlUtil {
     private boolean activityBroadcastUtil(Connection connection, JSONObject msg) {
 		try {
 			for(Connection con : controlInstance.getConnections()){
-			    if((con.isClient() && con.isLoggedInClient()) || (!con.isClient() && !con.isParentServer())){
+				boolean isSameConnection = (con.getSocket().getInetAddress() == connection.getSocket().getInetAddress());
+			    if(!isSameConnection && ((con.isClient() && con.isLoggedInClient()) || (!con.isClient()))){
                     con.writeMsg(msg.toJSONString());
                 }
             }

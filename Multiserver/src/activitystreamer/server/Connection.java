@@ -26,7 +26,6 @@ public class Connection extends Thread {
 	private boolean term = false;
 	private boolean isClient = true;
 	private boolean loggedInClient = false;
-	private boolean isParentServer = false;
 	JSONParser parser = new JSONParser();
 	
 	Connection(Socket socket) throws IOException{
@@ -106,11 +105,4 @@ public class Connection extends Thread {
 		this.loggedInClient = loggedInClient;
 	}
 
-	public boolean isParentServer() {
-		return isParentServer;
-	}
-
-	public void setParentServer(boolean parentServer) {
-		isParentServer = parentServer;
-	}
 }
