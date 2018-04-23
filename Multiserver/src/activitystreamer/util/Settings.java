@@ -17,7 +17,11 @@ public class Settings {
 	private static int activityInterval = 5000; // milliseconds
 	private static String secret = "abc";
 	private static String username = "anonymous";
-
+	private static String id = Settings.nextSecret();
+	
+	public static String getId() {
+		return id;
+	}
 	
 	public static int getLocalPort() {
 		return localPort;

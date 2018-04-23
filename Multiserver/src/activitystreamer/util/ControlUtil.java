@@ -24,6 +24,7 @@ public class ControlUtil {
 	public static final String LOCK_DENIED = "LOCK_DENIED";
 	public static final String LOCK_ALLOWED = "LOCK_ALLOWED";
 	public static Map<String, Integer> lockAllowedCount;
+	public static Map<String,JSONObject> serverList;
 
 	public String result_command = "";
 	public String result_info = "";
@@ -221,46 +222,8 @@ public class ControlUtil {
 	}
 
 	private boolean serverAnnounce(Connection connection, JSONObject msg) throws IOException {
-		int load = (int) msg.get("load");		//
-		int currentLoad = 0;
-		boolean isAuthenticated = false;
-		Connection redirectServer = null;
-		//testing server authentication
-		for(Connection con: controlInstance.getConnections()) {
-			if(con.getSocket().getInetAddress() == connection.getSocket().getInetAddress()) {
-				isAuthenticated = true;
-			}
-			if(con.isClient()) {
-				currentLoad++;
-			}
-			if(currentLoad <= load-2) {
-				redirectServer = con;
-			}else {
-				redirectServer = null;
-			}
-		}
-		if(!isAuthenticated) {
-			//call invalid_message procedure
-			return true;
-		}
-		if(redirectServer != null) {
-			resultOutput.put("command", "REDIRECT");
-			resultOutput.put("hostname",redirectServer.getSocket().getInetAddress().getHostAddress());
-			resultOutput.put("port",redirectServer.getSocket().getPort());
-			connection.writeMsg(resultOutput.toJSONString());
-			return true;
-		}else {
-			for(Connection con: controlInstance.getConnections()) {
-				if(!(con.isClient())) {
-					resultOutput.put("command", "SERVER_ANNOUNCE");
-					resultOutput.put("load", load);
-					resultOutput.put("hostname", connection.getSocket().getInetAddress().getHostAddress());
-					resultOutput.put("port", connection.getSocket().getPort());					
-					con.writeMsg(resultOutput.toJSONString());					
-				}
-			}
-			return false;
-		}	    
+		serverList.put((String)msg.get("id"), msg);
+		return false;
     }
 
     private boolean activityBroadcastUtil(Connection connection, JSONObject msg) {
@@ -325,7 +288,16 @@ public class ControlUtil {
             connection.setLoggedInClient(true);
 			resultOutput.put("command", "LOGIN_SUCCESS");
 			resultOutput.put("info", "logged in as user " + username);
-			connection.writeMsg(resultOutput.toJSONString());
+			connection.writeMsg(resultOutput.toJSONString());	
+			for(Map.Entry<String, JSONObject> entry:serverList.entrySet()) {
+				if(controlInstance.getLoad() > (int) entry.getValue().get("load") + 2) {
+					resultOutput.put("command", "REDIRECT");
+					resultOutput.put("hostname",(String) entry.getValue().get("hostname"));
+					resultOutput.put("port",(String) entry.getValue().get("port"));
+					connection.writeMsg(resultOutput.toJSONString());
+					return true;
+				}
+			}			
 			return false;
 		}else {
 			resultOutput.put("command", "LOGIN_FAILED");

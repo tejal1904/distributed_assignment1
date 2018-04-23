@@ -157,6 +157,7 @@ public class Control extends Thread {
 					output.put("load", load);
 					output.put("hostname", connection.getSocket().getInetAddress().getHostName());
 					output.put("port", connection.getSocket().getPort());
+					output.put("id", Settings.getId());
 					connection.writeMsg(output.toJSONString());
 				}catch(IOException e) {
 					e.printStackTrace();
