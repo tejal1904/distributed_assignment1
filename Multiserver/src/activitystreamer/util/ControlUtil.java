@@ -63,6 +63,13 @@ public class ControlUtil {
                     if(!controlInstance.getRegisteredClients().containsKey(username)){
 						controlInstance.addToBeRegisteredClients(msg,connection);
 						lockAllowedCount.put(username,0);
+						if(serverList.size() == 0) {
+							resultOutput.put("command", "REGISTER_SUCCESS");
+							resultOutput.put("info","register success for "+username);
+							connection.writeMsg(resultOutput.toJSONString());
+							controlInstance.addRegisteredClients(username,secret);
+							return false;
+						}
 						for(Connection connection1:controlInstance.getConnections()){
 							if(!connection1.isClient()){
 								JSONObject output = new JSONObject();
@@ -71,7 +78,7 @@ public class ControlUtil {
 								output.put("secret",secret);
 								connection1.writeMsg(output.toJSONString());
 							}
-						}
+						}						
 					}else{
 						resultOutput.put("command", "REGISTER_FAILED");
 						resultOutput.put("info",username + " is already registered with the system");
@@ -84,6 +91,7 @@ public class ControlUtil {
                         connection.writeMsg(resultOutput.toJSONString());
                         return true;
                     }
+					return false;
 				case ControlUtil.AUTHENTICATION:
 					String info = authenticateServer(connection,msg);
 					if(info.equals("SUCCESS")){
