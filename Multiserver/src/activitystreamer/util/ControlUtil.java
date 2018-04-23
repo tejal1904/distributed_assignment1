@@ -122,7 +122,7 @@ public class ControlUtil {
 					if(data.equals(LOCK_ALLOWED)){
 						for(Connection connection1:controlInstance.getConnections()){
 							boolean isSameConnection = (connection1.getSocket().getInetAddress() == connection.getSocket().getInetAddress());
-							if(!isSameConnection){
+							if(!isSameConnection && !connection1.isClient()){
 								resultOutput.put("command",data);
 								resultOutput.put("username", username);
 								resultOutput.put("secret", secret);
@@ -133,7 +133,7 @@ public class ControlUtil {
 					}else if(data.equals(LOCK_DENIED)){
 						for(Connection connection1:controlInstance.getConnections()){
 							boolean isSameConnection = (connection1.getSocket().getInetAddress() == connection.getSocket().getInetAddress());
-							if(!isSameConnection){
+							if(!isSameConnection && !connection1.isClient()){
 								resultOutput.put("command",data);
 								resultOutput.put("username", username);
 								resultOutput.put("secret", secret);
