@@ -1,8 +1,6 @@
 package activitystreamer.client;
 
 import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -10,15 +8,13 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
 import activitystreamer.util.Settings;
 
 public class ClientSkeleton extends Thread {
-	private static final Logger log = LogManager.getLogger();
 	private static ClientSkeleton clientSolution;
 	private TextFrame textFrame;
 	private PrintWriter outwriter;
@@ -58,7 +54,6 @@ public class ClientSkeleton extends Thread {
 			outwriter.close();
 			socket.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -73,13 +68,10 @@ public class ClientSkeleton extends Thread {
 				textFrame.setOutputText(outputJson);
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 	}
 
 }
