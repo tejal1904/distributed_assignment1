@@ -28,8 +28,6 @@ public class ControlUtil {
 	public static Map<String, Integer> lockAllowedCount = new HashMap<>();
 	public static Map<String, JSONObject> serverList = new HashMap<>();
 
-	public String result_command = "";
-	public String result_info = "";
 	JSONObject resultOutput = new JSONObject();
 	JSONParser parser = new JSONParser();
 	Control controlInstance = Control.getInstance();
