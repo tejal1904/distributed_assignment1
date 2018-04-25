@@ -135,15 +135,15 @@ public class ControlUtil {
 			}
 		}
 		if (null != connection1 && null != object) {
-			//sending lock_request to all other servers except the incoming one
+			//sending lock_denied to all other servers except the incoming one
 			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 			while (listIterator.hasNext()) {
 				Connection connection2 = listIterator.next();
 				if(connection2.equals(connection))
-					continue;;
+					continue;
 				if (connection2.getName().equals(ControlUtil.SERVER)) {
 					JSONObject output = new JSONObject();
-					output.put("command", LOCK_REQUEST);
+					output.put("command", LOCK_DENIED);
 					output.put("username", username2);
 					output.put("secret", secret);
 					connection2.writeMsg(output.toJSONString());
@@ -292,7 +292,7 @@ public class ControlUtil {
 			while (listIterator.hasNext()) {
 				Connection connection1 = listIterator.next();
 				if(connection1.equals(connection))
-					continue;;
+					continue;
 				if (connection1.getName().equals(ControlUtil.SERVER)) {
 					JSONObject output = new JSONObject();
 					output.put("command", LOCK_REQUEST);
@@ -320,11 +320,18 @@ public class ControlUtil {
 	private boolean serverAnnounce(JSONObject msg, Connection connection) throws IOException {
 		if (null != msg.get("id")) {
 			serverList.put((String) msg.get("id"), msg);
-			for(Connection connection1:controlInstance.getConnections()){
-				if(connection.equals(connection1))
+			//sending lock_request to all other servers except the incoming one
+			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
+			while (listIterator.hasNext()) {
+				Connection connection1 = listIterator.next();
+				if(connection1.equals(connection))
 					continue;
-				connection1.writeMsg(msg.toJSONString());
+				if (connection1.getName().equals(ControlUtil.SERVER)) {
+					
+					connection1.writeMsg(msg.toJSONString());
+				}
 			}
+			
 		}
 		return false;
 	}
