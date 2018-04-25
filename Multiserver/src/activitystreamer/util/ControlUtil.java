@@ -375,7 +375,8 @@ public class ControlUtil {
 
 	public String checkCredentials(String username, String password) {
 		Map<String, String> registeredUsers = controlInstance.getRegisteredClients();
-		if ((registeredUsers.containsKey(username) && (registeredUsers.get(username).equals(password)))
+		Map<String, String> globalClients = controlInstance.getGlobalRegisteredClients();
+		if ((registeredUsers.containsKey(username) && globalClients.containsKey(username)&& (registeredUsers.get(username).equals(password)))
 				|| username.equals("anonymous")) {
 			return "success";
 		} else if (registeredUsers.containsKey(username) && (!registeredUsers.get(username).equals(password))) {
