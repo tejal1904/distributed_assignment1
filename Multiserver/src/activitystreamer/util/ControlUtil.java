@@ -322,7 +322,7 @@ public class ControlUtil {
 				if (null != object) {
 					if (controlInstance.getLoad() > ((Long) serverList.get(object).get("load")).intValue() + 2) {
 						try {
-							connection.sleep(2000);
+							Thread.sleep(2000);
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
