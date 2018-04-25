@@ -70,7 +70,7 @@ public class ControlUtil {
 			case ControlUtil.ACTIVITY_BROADCAST:
 				return activityBroadcastUtil(connection, msg);
 			case ControlUtil.SERVER_ANNOUNCE:
-				return serverAnnounce(msg);
+				return serverAnnounce(msg, connection);
 			case ControlUtil.LOCK_REQUEST:
 				return receiveLockRequestClient(msg, connection);
 			case ControlUtil.LOCK_ALLOWED:
@@ -317,9 +317,14 @@ public class ControlUtil {
 		}
 	}
 
-	private boolean serverAnnounce(JSONObject msg) throws IOException {
+	private boolean serverAnnounce(JSONObject msg, Connection connection) throws IOException {
 		if (null != msg.get("id")) {
 			serverList.put((String) msg.get("id"), msg);
+			for(Connection connection1:controlInstance.getConnections()){
+				if(connection.equals(connection1))
+					continue;
+				connection1.writeMsg(msg.toJSONString());
+			}
 		}
 		return false;
 	}

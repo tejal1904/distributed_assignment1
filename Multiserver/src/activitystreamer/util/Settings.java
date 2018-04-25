@@ -13,7 +13,7 @@ public class Settings {
 	private static int localPort = 3780;
 	private static String localHostname = "localhost";
 	private static String remoteHostname = null;
-	private static int remotePort = 3781;
+	private static int remotePort = 3780;
 	private static int activityInterval = 5000; // milliseconds
 	private static String secret = "abc";
 	private static String username = "anonymous";
