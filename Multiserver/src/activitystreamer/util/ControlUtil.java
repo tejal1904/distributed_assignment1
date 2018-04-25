@@ -343,12 +343,14 @@ public class ControlUtil {
 			connection.writeMsg(resultOutput.toJSONString());
 			return true;
 		} else{
+			JSONObject activity = (JSONObject) msg.get("activity");
+			activity.put("authenticated_user", username);
 			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 			while (listIterator.hasNext()) {
 				Connection connection1 = listIterator.next();
 				if (connection1.getName().equals(ControlUtil.SERVER) || (connection1.isLoggedInClient())) {
 					resultOutput.put("command", "ACTIVITY_BROADCAST");
-					resultOutput.put("activity", msg.get("activity"));
+					resultOutput.put("activity", activity);
 					connection1.writeMsg(resultOutput.toJSONString());
 				}
 			}
