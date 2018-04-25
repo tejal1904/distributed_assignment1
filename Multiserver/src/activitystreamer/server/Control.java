@@ -9,21 +9,17 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
-import activitystreamer.Server;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
-
 import activitystreamer.util.ControlUtil;
 import activitystreamer.util.Settings;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 public class Control extends Thread {
 	private static final Logger log = LogManager.getLogger();
 	private static ArrayList<Connection> connections;
 	private Map<String, String> registeredClients;
+	//TODO: what if 2 clients have same username????
 	private Map<JSONObject,Connection> toBeRegisteredClients;
 	private static boolean term=false;
 	private static Listener listener;
