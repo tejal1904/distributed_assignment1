@@ -324,12 +324,14 @@ public class ControlUtil {
 			Iterator<String> stringIterator = serverList.keySet().iterator();
 			while (stringIterator.hasNext()){
 				String object = stringIterator.next();
-				if(controlInstance.getLoad() > (((Integer)serverList.get(object).get("load")) + 2)) {
-					resultOutput.put("command", "REDIRECT");
-					resultOutput.put("hostname",(String) serverList.get(object).get("hostname"));
-					resultOutput.put("port",(String) serverList.get(object).get("port"));
-					connection.writeMsg(resultOutput.toJSONString());
-					return true;
+				if(null != object){
+					if(controlInstance.getLoad() > (((Integer)serverList.get(object).get("load")) + 2)) {
+						resultOutput.put("command", "REDIRECT");
+						resultOutput.put("hostname",(String) serverList.get(object).get("hostname"));
+						resultOutput.put("port",(String) serverList.get(object).get("port"));
+						connection.writeMsg(resultOutput.toJSONString());
+						return true;
+					}
 				}
 			}			
 			return false;
