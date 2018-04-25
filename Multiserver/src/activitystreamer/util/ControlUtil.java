@@ -316,7 +316,6 @@ public class ControlUtil {
 
 	@SuppressWarnings("unchecked")
 	private boolean activityMessageUtil(Connection connection, JSONObject msg) throws IOException {
-		connection.setName(ControlUtil.SERVER);
 		String username = (String) msg.get("username");
 		String secret = (String) msg.get("secret");
 		if (username.equals("anonymous")) {
@@ -366,7 +365,6 @@ public class ControlUtil {
 		secret = (String) msg.get("secret");
 		String info = checkCredentials(username1, secret);
 		if (info.equals("success")) {
-			connection.setName(ControlUtil.SERVER);
 			connection.setLoggedInClient(true);
 			resultOutput.put("command", "LOGIN_SUCCESS");
 			resultOutput.put("info", "logged in as user " + username1);
@@ -402,10 +400,13 @@ public class ControlUtil {
 	public String checkCredentials(String username, String password) {
 		Map<String, String> registeredUsers = controlInstance.getRegisteredClients();
 		Map<String, String> globalClients = controlInstance.getGlobalRegisteredClients();
-		if ((registeredUsers.containsKey(username) && (registeredUsers.get(username).equals(password))) || globalClients.containsKey(username)
+		if ((registeredUsers.containsKey(username) && (registeredUsers.get(username).equals(password))) || (globalClients.containsKey(username) &&
+				globalClients.get(username).equals(password))
 				|| username.equals("anonymous")) {
 			return "success";
-		} else if (registeredUsers.containsKey(username) && (!registeredUsers.get(username).equals(password))) {
+		} else if ((registeredUsers.containsKey(username) && !(registeredUsers.get(username).equals(password))) || (globalClients.containsKey
+				(username) &&
+				!globalClients.get(username).equals(password))) {
 			return "attempt to login with wrong secret";
 		} else if (!registeredUsers.containsKey(username)) {
 			return "client is not registered with the server";
