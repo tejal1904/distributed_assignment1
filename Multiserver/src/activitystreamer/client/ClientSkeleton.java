@@ -44,7 +44,6 @@ public class ClientSkeleton extends Thread {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 		start();
 	}
 
@@ -57,6 +56,7 @@ public class ClientSkeleton extends Thread {
 		try {
 			inReader.close();
 			outwriter.close();
+			socket.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
