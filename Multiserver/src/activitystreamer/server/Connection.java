@@ -23,9 +23,7 @@ public class Connection extends Thread {
 	private boolean open = false;
 	private Socket socket;
 	private boolean term = false;
-	private boolean isClient = true;
 	private boolean loggedInClient = false;
-	JSONParser parser = new JSONParser();
 
 	Connection(Socket socket) throws IOException {
 		in = new DataInputStream(socket.getInputStream());
@@ -68,7 +66,6 @@ public class Connection extends Thread {
 			String data;
 			while (!term && (data = inreader.readLine()) != null) {
 				term = Control.getInstance().process(this, data);
-				log.info("--------" + data);
 			}
 			log.debug("connection closed to " + Settings.socketAddress(socket));
 			Control.getInstance().connectionClosed(this);
@@ -86,14 +83,6 @@ public class Connection extends Thread {
 
 	public boolean isOpen() {
 		return open;
-	}
-
-	public boolean isClient() {
-		return isClient;
-	}
-
-	public void setClient(boolean isClient) {
-		this.isClient = isClient;
 	}
 
 	public boolean isLoggedInClient() {

@@ -22,7 +22,6 @@ public class Listener extends Thread {
 	@Override
 	public void run() {
 		log.info("listening for new connections on " + portnum);
-		System.out.println("secret: " + Settings.getSecret());
 		while (!term) {
 			Socket clientSocket;
 			try {

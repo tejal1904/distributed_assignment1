@@ -25,10 +25,11 @@ public class ControlUtil {
 	public static final String LOCK_REQUEST = "LOCK_REQUEST";
 	public static final String LOCK_DENIED = "LOCK_DENIED";
 	public static final String LOCK_ALLOWED = "LOCK_ALLOWED";
+	private static final String SERVER = "SERVER";
 	public static Map<String, Integer> lockAllowedCount = new HashMap<>();
 	public static Map<String, JSONObject> serverList = new HashMap<>();
 
-	JSONObject resultOutput = new JSONObject();
+	JSONObject resultOutput;
 	JSONParser parser = new JSONParser();
 	Control controlInstance = Control.getInstance();
 
@@ -44,6 +45,7 @@ public class ControlUtil {
 	@SuppressWarnings("unchecked")
 	public boolean processCommands(Connection connection, String message) {
 		JSONObject msg;
+		resultOutput = new JSONObject();
 		try {
 			msg = (JSONObject) parser.parse(message);
 			String command = (String) msg.get("command");
@@ -70,7 +72,7 @@ public class ControlUtil {
 					ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 					while (listIterator.hasNext()) {
 						Connection connection1 = listIterator.next();
-						if (!connection1.isClient()) {
+						if (!connection1.getName().equals(ControlUtil.SERVER)) {
 							JSONObject output = new JSONObject();
 							output.put("command", LOCK_REQUEST);
 							output.put("username", username);
@@ -94,6 +96,7 @@ public class ControlUtil {
 			case ControlUtil.AUTHENTICATION:
 				String info = authenticateServer(connection, msg);
 				if (info.equals("SUCCESS")) {
+					connection.setName(ControlUtil.SERVER);
 					return false;
 				} else if (info.equals("AUTHENTICATION_FAIL")) {
 					resultOutput.put("command", info);
@@ -109,10 +112,10 @@ public class ControlUtil {
 			case ControlUtil.ACTIVITY_MESSAGE:
 				return activityMessageUtil(connection, msg);
 			case ControlUtil.ACTIVITY_BROADCAST:
-				connection.setClient(false);
+				//connection.setClient(false);
 				return activityBroadcastUtil(connection, msg);
 			case ControlUtil.SERVER_ANNOUNCE:
-				connection.setClient(false);
+				//connection.setClient(false);
 				return serverAnnounce(msg);
 			case ControlUtil.LOCK_REQUEST:
 				// process received lock request
@@ -120,9 +123,10 @@ public class ControlUtil {
 				String data = processLockRequest(msg);
 				if (data.equals(LOCK_ALLOWED)) {
 					ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
+					controlInstance.addGlobalRegisteredClients(username3,secret);
 					while (listIterator.hasNext()) {
 						Connection connection1 = listIterator.next();
-						if (!connection1.isClient()) {
+						if (!connection1.getName().equals(ControlUtil.SERVER)) {
 							resultOutput.put("command", data);
 							resultOutput.put("username", username3);
 							resultOutput.put("secret", secret);
@@ -134,7 +138,7 @@ public class ControlUtil {
 					ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 					while (listIterator.hasNext()) {
 						Connection connection1 = listIterator.next();
-						if (!connection1.isClient()) {
+						if (!connection1.getName().equals(ControlUtil.SERVER)) {
 							resultOutput.put("command", data);
 							resultOutput.put("username", username3);
 							resultOutput.put("secret", secret);
@@ -154,7 +158,7 @@ public class ControlUtil {
 				ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 				while (listIterator.hasNext()) {
 					Connection connection1 = listIterator.next();
-					if (!connection1.isClient()) {
+					if (!connection1.getName().equals(ControlUtil.SERVER)) {
 						totalServers++;
 					}
 				}
@@ -181,6 +185,9 @@ public class ControlUtil {
 				String username2 = (String) msg.get("username");
 				JSONObject object = null;
 				Connection connection1 = null;
+				if(Control.getInstance().getGlobalRegisteredClients().containsKey(username2)){
+					Control.getInstance().getGlobalRegisteredClients().remove(username2);
+				}
 				for (Map.Entry<JSONObject, Connection> entry : controlInstance.getToBeRegisteredClients().entrySet()) {
 					if (username2.equals(entry.getKey().get("username").toString())) {
 						object = entry.getKey();
@@ -229,10 +236,10 @@ public class ControlUtil {
 	}
 
 	private String authenticateServer(Connection connection, JSONObject msg) {
+		System.out.println("in authenticate: "+connection.getSocket().getInetAddress());
 		String secret = (String) msg.get("secret");
 
 		if (Settings.getSecret().equals(secret)) {
-			connection.setClient(false);
 			return "SUCCESS";
 		} else {
 			return "AUTHENTICATION_FAIL";
@@ -254,7 +261,7 @@ public class ControlUtil {
 				boolean isSameConnection = (connection1.getSocket().getInetAddress() == connection.getSocket()
 						.getInetAddress());
 				if (!isSameConnection
-						&& ((connection1.isClient() && connection1.isLoggedInClient()) || (!connection1.isClient()))) {
+						&& ((connection1.getName().equals(ControlUtil.SERVER) && connection1.isLoggedInClient()) || (!connection1.getName().equals(ControlUtil.SERVER)))) {
 					connection1.writeMsg(msg.toJSONString());
 				}
 			}
@@ -267,14 +274,14 @@ public class ControlUtil {
 
 	@SuppressWarnings("unchecked")
 	private boolean activityMessageUtil(Connection connection, JSONObject msg) throws IOException {
-		connection.setClient(true);
+		connection.setName(ControlUtil.SERVER);
 		String username = (String) msg.get("username");
 		String secret = (String) msg.get("secret");
 		if (username.equals("anonymous")) {
 			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 			while (listIterator.hasNext()) {
 				Connection connection1 = listIterator.next();
-				if (!connection1.isClient()) {
+				if (!connection1.getName().equals(ControlUtil.SERVER)) {
 					resultOutput.put("command", "ACTIVITY_BROADCAST");
 					resultOutput.put("activity", msg.get("activity"));
 					connection1.writeMsg(resultOutput.toJSONString());
@@ -286,13 +293,14 @@ public class ControlUtil {
 		if ((!connection.isLoggedInClient()) || (!(controlInstance.getRegisteredClients().containsKey(username)
 				&& controlInstance.getRegisteredClients().get(username).equals(secret)))) {
 			resultOutput.put("command", "AUTHENTICATION_FAIL");
+			resultOutput.put("info","must send a login message first");
 			connection.writeMsg(resultOutput.toJSONString());
 			return true;
 		} else {
 			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 			while (listIterator.hasNext()) {
 				Connection connection1 = listIterator.next();
-				if (!connection1.isClient()) {
+				if (!connection1.getName().equals(ControlUtil.SERVER)) {
 					resultOutput.put("command", "ACTIVITY_BROADCAST");
 					resultOutput.put("activity", msg.get("activity"));
 					connection1.writeMsg(resultOutput.toJSONString());
@@ -311,7 +319,7 @@ public class ControlUtil {
 		secret = (String) msg.get("secret");
 		String info = checkCredentials(username1, secret);
 		if (info.equals("success")) {
-			connection.setClient(true);
+			connection.setName(ControlUtil.SERVER);
 			connection.setLoggedInClient(true);
 			resultOutput.put("command", "LOGIN_SUCCESS");
 			resultOutput.put("info", "logged in as user " + username1);
@@ -326,6 +334,7 @@ public class ControlUtil {
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
+						resultOutput = new JSONObject();
 						resultOutput.put("command", "REDIRECT");
 						resultOutput.put("hostname", (String) serverList.get(object).get("hostname"));
 						resultOutput.put("port", String.valueOf(serverList.get(object).get("port")));

@@ -21,16 +21,17 @@ import activitystreamer.util.Settings;
 
 public class Control extends Thread {
 	private static final Logger log = LogManager.getLogger();
+	private static final String SERVER = "SERVER";
 	private static CopyOnWriteArrayList<Connection> connections;
 	private Map<String, String> registeredClients;
-	// TODO: what if 2 clients have same username????
 	private Map<JSONObject, Connection> toBeRegisteredClients;
+	private Map<String, String> globalRegisteredClients;
 	private static boolean term = false;
 	private static Listener listener;
 	protected static Control control = null;
 	private PrintWriter outwriter;
 	private BufferedReader inReader;
-	private static int load;
+	private int load;
 
 	public static Control getInstance() {
 		if (control == null) {
@@ -44,6 +45,7 @@ public class Control extends Thread {
 		connections = new CopyOnWriteArrayList<Connection>();
 		registeredClients = new ConcurrentHashMap<>();
 		toBeRegisteredClients = new ConcurrentHashMap<>();
+		globalRegisteredClients = new ConcurrentHashMap<>();
 		// start a listener
 		try {
 			listener = new Listener();
@@ -78,9 +80,11 @@ public class Control extends Thread {
 	 * The connection has been closed by the other party.
 	 */
 	public synchronized void connectionClosed(Connection con) {
-		if (!term)
+		if (!term) {
 			connections.remove(con);
+		}
 	}
+
 
 	/*
 	 * A new incoming connection has been established, and a reference is returned
@@ -90,13 +94,6 @@ public class Control extends Thread {
 		log.debug("incomming connection: " + Settings.socketAddress(s));
 		Connection c = new Connection(s);
 		connections.add(c);
-		load = 0;
-		for (Connection connection : connections) {
-			if (connection.isClient() == true) {
-				load++;
-			}
-		}
-		System.out.println("Load - > " + load);
 		log.info(connections.get(0).getSocket().getInputStream().toString());
 		return c;
 	}
@@ -109,7 +106,7 @@ public class Control extends Thread {
 	public synchronized Connection outgoingConnection(Socket s) throws IOException {
 		log.debug("outgoing connection: " + Settings.socketAddress(s));
 		Connection c = new Connection(s);
-		c.setClient(false);
+		c.setName(Control.SERVER);
 		connections.add(c);
 
 		DataInputStream in = new DataInputStream(s.getInputStream());
@@ -152,8 +149,16 @@ public class Control extends Thread {
 
 	@SuppressWarnings("unchecked")
 	public boolean doActivity() {
+		load = 0;
+		for(Connection connection: Control.connections){
+			if(!connection.getName().equals(SERVER)){
+				load++;
+			}
+		}
+
+
 		for (Connection connection : Control.connections) {
-			if (connection.isOpen() && !connection.isClient()) {
+			if (connection.isOpen() && !connection.getName().equals(Control.SERVER)) {
 				try {
 					JSONObject output = new JSONObject();
 					output.put("command", "SERVER_ANNOUNCE");
@@ -197,4 +202,14 @@ public class Control extends Thread {
 	public Map<JSONObject, Connection> getToBeRegisteredClients() {
 		return toBeRegisteredClients;
 	}
+
+	public Map<String, String> getGlobalRegisteredClients() {
+		return globalRegisteredClients;
+	}
+
+	public void addGlobalRegisteredClients(String username, String secret) {
+		globalRegisteredClients.put(username, secret);
+	}
+
+
 }
