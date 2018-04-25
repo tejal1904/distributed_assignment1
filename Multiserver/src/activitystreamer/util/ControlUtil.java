@@ -45,7 +45,7 @@ public class ControlUtil {
 	}	
 	
 	@SuppressWarnings("unchecked")
-	public boolean processCommands(Connection connection, String message) throws InterruptedException {
+	public boolean processCommands(Connection connection, String message) {
 		JSONObject msg;
 		try {
 			msg = (JSONObject) parser.parse(message);		
@@ -306,7 +306,7 @@ public class ControlUtil {
 	}
 
 	@SuppressWarnings("unchecked")
-	private boolean loginUtil(Connection connection, JSONObject msg) throws IOException, InterruptedException {
+	private boolean loginUtil(Connection connection, JSONObject msg) throws IOException {
 		String secret;
 		String username1;
 		username1 = (String) msg.get("username");
@@ -323,7 +323,11 @@ public class ControlUtil {
 				String object = stringIterator.next();
 				if(null != object){
 					if(controlInstance.getLoad() > ((Long)serverList.get(object).get("load")).intValue() + 2) {
-						connection.sleep(2000);
+						try {
+							connection.sleep(2000);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
 						resultOutput.put("command", "REDIRECT");
 						resultOutput.put("hostname",(String) serverList.get(object).get("hostname"));
 						resultOutput.put("port", String.valueOf(serverList.get(object).get("port")));

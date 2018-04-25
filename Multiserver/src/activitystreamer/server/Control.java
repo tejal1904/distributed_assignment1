@@ -155,7 +155,7 @@ public class Control extends Thread {
 					JSONObject output = new JSONObject();
 					output.put("command", "SERVER_ANNOUNCE");
 					output.put("load", load);
-					output.put("hostname", connection.getSocket().getInetAddress().getHostName());
+					output.put("hostname", connection.getSocket().getInetAddress());
 					output.put("port", connection.getSocket().getPort());
 					output.put("id", Settings.getId());
 					connection.writeMsg(output.toJSONString());
