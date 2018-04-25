@@ -303,7 +303,7 @@ public class ControlUtil {
 			resultOutput.put("info", "logged in as user " + username);
 			connection.writeMsg(resultOutput.toJSONString());	
 			for(Map.Entry<String, JSONObject> entry:serverList.entrySet()) {
-				if(controlInstance.getLoad() > ((int) entry.getValue().get("load")) + 2) {
+				if(controlInstance.getLoad() > (((Integer)entry.getValue().get("load")) + 2)) {
 					resultOutput.put("command", "REDIRECT");
 					resultOutput.put("hostname",(String) entry.getValue().get("hostname"));
 					resultOutput.put("port",(String) entry.getValue().get("port"));
