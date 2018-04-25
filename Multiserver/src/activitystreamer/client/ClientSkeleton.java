@@ -50,10 +50,12 @@ public class ClientSkeleton extends Thread {
 
 	public void disconnect() {
 		try {
-			inReader.close();
-			outwriter.close();
+			Thread.sleep(2000);
 			socket.close();
+			textFrame.dispose();
 		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
