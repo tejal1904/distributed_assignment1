@@ -149,7 +149,7 @@ public class ControlUtil {
 		ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 		while (listIterator.hasNext()) {
 			Connection connection1 = listIterator.next();
-			if (!connection1.getName().equals(ControlUtil.SERVER)) {
+			if (connection1.getName().equals(ControlUtil.SERVER)) {
 				totalServers++;
 			}
 		}
@@ -183,7 +183,7 @@ public class ControlUtil {
 			controlInstance.addGlobalRegisteredClients(username3,secret3);
 			while (listIterator.hasNext()) {
 				Connection connection1 = listIterator.next();
-				if (!connection1.getName().equals(ControlUtil.SERVER)) {
+				if (connection1.getName().equals(ControlUtil.SERVER)) {
 					resultOutput.put("command", data);
 					resultOutput.put("username", username3);
 					resultOutput.put("secret", secret3);
@@ -195,7 +195,7 @@ public class ControlUtil {
 			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 			while (listIterator.hasNext()) {
 				Connection connection1 = listIterator.next();
-				if (!connection1.getName().equals(ControlUtil.SERVER)) {
+				if (connection1.getName().equals(ControlUtil.SERVER)) {
 					resultOutput.put("command", data);
 					resultOutput.put("username", username3);
 					resultOutput.put("secret", secret3);
@@ -223,7 +223,7 @@ public class ControlUtil {
 			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 			while (listIterator.hasNext()) {
 				Connection connection1 = listIterator.next();
-				if (!connection1.getName().equals(ControlUtil.SERVER)) {
+				if (connection1.getName().equals(ControlUtil.SERVER)) {
 					JSONObject output = new JSONObject();
 					output.put("command", LOCK_REQUEST);
 					output.put("username", username);
@@ -282,7 +282,8 @@ public class ControlUtil {
 				boolean isSameConnection = (connection1.getSocket().getInetAddress() == connection.getSocket()
 						.getInetAddress());
 				if (!isSameConnection
-						&& ((connection1.getName().equals(ControlUtil.SERVER) && connection1.isLoggedInClient()) || (!connection1.getName().equals(ControlUtil.SERVER)))) {
+						&& ((!connection1.getName().equals(ControlUtil.SERVER) && connection1.isLoggedInClient()) || (connection1.getName().equals
+						(ControlUtil.SERVER)))) {
 					connection1.writeMsg(msg.toJSONString());
 				}
 			}
@@ -302,7 +303,7 @@ public class ControlUtil {
 			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 			while (listIterator.hasNext()) {
 				Connection connection1 = listIterator.next();
-				if (!connection1.getName().equals(ControlUtil.SERVER)) {
+				if (connection1.getName().equals(ControlUtil.SERVER) || (connection1.isLoggedInClient())) {
 					resultOutput.put("command", "ACTIVITY_BROADCAST");
 					resultOutput.put("activity", msg.get("activity"));
 					connection1.writeMsg(resultOutput.toJSONString());
@@ -321,7 +322,7 @@ public class ControlUtil {
 			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 			while (listIterator.hasNext()) {
 				Connection connection1 = listIterator.next();
-				if (!connection1.getName().equals(ControlUtil.SERVER)) {
+				if (connection1.getName().equals(ControlUtil.SERVER) || (connection1.isLoggedInClient())) {
 					resultOutput.put("command", "ACTIVITY_BROADCAST");
 					resultOutput.put("activity", msg.get("activity"));
 					connection1.writeMsg(resultOutput.toJSONString());
