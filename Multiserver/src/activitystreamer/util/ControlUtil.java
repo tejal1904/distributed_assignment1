@@ -119,7 +119,7 @@ public class ControlUtil {
 					return serverAnnounce(msg);
 				case ControlUtil.LOCK_REQUEST:
 					//process received lock request
-					username = (String) msg.get("username");
+					String username3 = (String) msg.get("username");
 					String data = processLockRequest(msg);
 					if(data.equals(LOCK_ALLOWED)){
 						ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
@@ -128,7 +128,7 @@ public class ControlUtil {
 //							boolean isSameConnection = (connection1.getSocket().getInetAddress() == connection.getSocket().getInetAddress());
 							if(!connection1.isClient()){
 								resultOutput.put("command",data);
-								resultOutput.put("username", username);
+								resultOutput.put("username", username3);
 								resultOutput.put("secret", secret);
 								connection1.writeMsg(resultOutput.toJSONString());
 								return false;
@@ -141,20 +141,20 @@ public class ControlUtil {
 //							boolean isSameConnection = (connection1.getSocket().getInetAddress() == connection.getSocket().getInetAddress());
 							if(!connection1.isClient()){
 								resultOutput.put("command",data);
-								resultOutput.put("username", username);
+								resultOutput.put("username", username3);
 								resultOutput.put("secret", secret);
 								connection1.writeMsg(resultOutput.toJSONString());
-								return true;
+								return false;
 							}
 						}
 					}
 				case  ControlUtil.LOCK_ALLOWED:
-					username = (String) msg.get("username");
+					String username1 = (String) msg.get("username");
 					int count=0;
-					if(null != lockAllowedCount.get(username)){
-						count = lockAllowedCount.get(username);
+					if(null != lockAllowedCount.get(username1)){
+						count = lockAllowedCount.get(username1);
 					}
-					lockAllowedCount.put(username, count+1);
+					lockAllowedCount.put(username1, count+1);
 					int totalServers = 0;
 					ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 					while(listIterator.hasNext()){
@@ -163,17 +163,17 @@ public class ControlUtil {
 							totalServers++;
 						}
 					}
-					if(totalServers == lockAllowedCount.get(username)){
+					if(totalServers == lockAllowedCount.get(username1)){
 						Iterator<JSONObject> iterator = controlInstance.getToBeRegisteredClients().keySet().iterator();
 						while(iterator.hasNext()){
 							JSONObject object = iterator.next();
 							Connection connection1 = controlInstance.getToBeRegisteredClients().get(object);
 							if(null != object && null != connection1){
-								if(username.equals(object.get("username").toString())){
-									lockAllowedCount.remove(username);
-									controlInstance.addRegisteredClients(username,object.get("secret").toString());
+								if(username1.equals(object.get("username").toString())){
+									lockAllowedCount.remove(username1);
+									controlInstance.addRegisteredClients(username1,object.get("secret").toString());
 									resultOutput.put("command","REGISTER_SUCCESS");
-									resultOutput.put("info","register success for "+username);
+									resultOutput.put("info","register success for "+username1);
 									connection1.writeMsg(resultOutput.toJSONString());
 									return false;
 								}
@@ -183,22 +183,21 @@ public class ControlUtil {
 					return false;
 
 				case ControlUtil.LOCK_DENIED:
-					username = (String) msg.get("username");
+					String username2 = (String) msg.get("username");
 					JSONObject object = null;
 					Connection connection1 = null;
 					for(Map.Entry<JSONObject,Connection> entry:controlInstance.getToBeRegisteredClients().entrySet()){
-						if(username.equals(entry.getKey().get("username").toString())){
+						if(username2.equals(entry.getKey().get("username").toString())){
 							object = entry.getKey();
 							connection1 = entry.getValue();
 						}
 					}
 					if(null != connection1 && null != object){
 						controlInstance.getToBeRegisteredClients().remove(object);
-						lockAllowedCount.remove(username);
+						lockAllowedCount.remove(username2);
 						resultOutput.put("command", "REGISTER_FAILED");
 						resultOutput.put("info", object.get("username").toString() + " is already registered with the system");
 						connection1.writeMsg(resultOutput.toJSONString());
-						return true;
 					}
 					return false;
 
@@ -311,15 +310,15 @@ public class ControlUtil {
 	@SuppressWarnings("unchecked")
 	private boolean loginUtil(Connection connection, JSONObject msg) throws IOException {
 		String secret;
-		String username;
-		username = (String) msg.get("username");
+		String username1;
+		username1 = (String) msg.get("username");
 		secret = (String) msg.get("secret");
-		String info = checkCredentials(username,secret);
+		String info = checkCredentials(username1,secret);
 		if(info.equals("success")) {
             connection.setClient(true);
             connection.setLoggedInClient(true);
 			resultOutput.put("command", "LOGIN_SUCCESS");
-			resultOutput.put("info", "logged in as user " + username);
+			resultOutput.put("info", "logged in as user " + username1);
 			connection.writeMsg(resultOutput.toJSONString());
 			Iterator<String> stringIterator = serverList.keySet().iterator();
 			while (stringIterator.hasNext()){
