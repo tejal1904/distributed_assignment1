@@ -45,7 +45,7 @@ public class ControlUtil {
 	}	
 	
 	@SuppressWarnings("unchecked")
-	public boolean processCommands(Connection connection, String message) {
+	public boolean processCommands(Connection connection, String message) throws InterruptedException {
 		JSONObject msg;
 		try {
 			msg = (JSONObject) parser.parse(message);		
@@ -125,7 +125,6 @@ public class ControlUtil {
 						ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 						while(listIterator.hasNext()){
 							Connection connection1 = listIterator.next();
-//							boolean isSameConnection = (connection1.getSocket().getInetAddress() == connection.getSocket().getInetAddress());
 							if(!connection1.isClient()){
 								resultOutput.put("command",data);
 								resultOutput.put("username", username3);
@@ -138,7 +137,6 @@ public class ControlUtil {
 						ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 						while(listIterator.hasNext()){
 							Connection connection1 = listIterator.next();
-//							boolean isSameConnection = (connection1.getSocket().getInetAddress() == connection.getSocket().getInetAddress());
 							if(!connection1.isClient()){
 								resultOutput.put("command",data);
 								resultOutput.put("username", username3);
@@ -308,7 +306,7 @@ public class ControlUtil {
 	}
 
 	@SuppressWarnings("unchecked")
-	private boolean loginUtil(Connection connection, JSONObject msg) throws IOException {
+	private boolean loginUtil(Connection connection, JSONObject msg) throws IOException, InterruptedException {
 		String secret;
 		String username1;
 		username1 = (String) msg.get("username");
@@ -325,6 +323,7 @@ public class ControlUtil {
 				String object = stringIterator.next();
 				if(null != object){
 					if(controlInstance.getLoad() > ((Long)serverList.get(object).get("load")).intValue() + 2) {
+						connection.sleep(2000);
 						resultOutput.put("command", "REDIRECT");
 						resultOutput.put("hostname",(String) serverList.get(object).get("hostname"));
 						resultOutput.put("port", String.valueOf(serverList.get(object).get("port")));
