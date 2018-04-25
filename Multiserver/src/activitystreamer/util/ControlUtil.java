@@ -125,8 +125,8 @@ public class ControlUtil {
 						ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 						while(listIterator.hasNext()){
 							Connection connection1 = listIterator.next();
-							boolean isSameConnection = (connection1.getSocket().getInetAddress() == connection.getSocket().getInetAddress());
-							if(!isSameConnection && !connection1.isClient()){
+//							boolean isSameConnection = (connection1.getSocket().getInetAddress() == connection.getSocket().getInetAddress());
+							if(!connection1.isClient()){
 								resultOutput.put("command",data);
 								resultOutput.put("username", username);
 								resultOutput.put("secret", secret);
