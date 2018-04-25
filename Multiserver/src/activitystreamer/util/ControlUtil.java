@@ -332,13 +332,18 @@ public class ControlUtil {
 			return false;
 		}
 
-		if ((!connection.isLoggedInClient()) || (!(controlInstance.getRegisteredClients().containsKey(username)
-				&& controlInstance.getRegisteredClients().get(username).equals(secret)))) {
+		if ((!connection.isLoggedInClient())) {
 			resultOutput.put("command", "AUTHENTICATION_FAIL");
 			resultOutput.put("info","must send a login message first");
 			connection.writeMsg(resultOutput.toJSONString());
 			return true;
-		} else {
+		} else if(!(controlInstance.getRegisteredClients().containsKey(username)
+				&& controlInstance.getRegisteredClients().get(username).equals(secret))){
+			resultOutput.put("command", "AUTHENTICATION_FAIL");
+			resultOutput.put("info","username and/or secret is incorrect");
+			connection.writeMsg(resultOutput.toJSONString());
+			return true;
+		} else{
 			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 			while (listIterator.hasNext()) {
 				Connection connection1 = listIterator.next();
