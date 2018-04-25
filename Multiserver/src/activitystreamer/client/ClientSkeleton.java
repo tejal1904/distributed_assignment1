@@ -23,6 +23,7 @@ public class ClientSkeleton extends Thread {
 	private TextFrame textFrame;
 	private PrintWriter outwriter;
 	private BufferedReader inReader;
+	private Socket socket;
 
 	public static ClientSkeleton getInstance() {
 		if (clientSolution == null) {
@@ -34,7 +35,7 @@ public class ClientSkeleton extends Thread {
 	public ClientSkeleton() {
 		textFrame = new TextFrame();
 		try {
-			Socket socket = new Socket(Settings.getRemoteHostname(), Settings.getLocalPort());
+			socket = new Socket(Settings.getRemoteHostname(), Settings.getLocalPort());
 			inReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
 			outwriter = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
 
@@ -53,7 +54,13 @@ public class ClientSkeleton extends Thread {
 	}
 
 	public void disconnect() {
-
+		try {
+			inReader.close();
+			outwriter.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public void run() {
@@ -65,8 +72,6 @@ public class ClientSkeleton extends Thread {
 				System.out.println("message Received from server: " + message);
 				textFrame.setOutputText(outputJson);
 			}
-			;
-
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
