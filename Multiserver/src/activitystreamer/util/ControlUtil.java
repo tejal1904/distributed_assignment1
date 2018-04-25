@@ -4,7 +4,9 @@ import activitystreamer.server.Connection;
 import activitystreamer.server.Control;
 import activitystreamer.server.ServerPojo;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.ListIterator;
 import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -70,7 +72,9 @@ public class ControlUtil {
 							controlInstance.addRegisteredClients(username,secret);
 							return false;
 						}
-						for(Connection connection1:controlInstance.getConnections()){
+						ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
+						while(listIterator.hasNext()){
+							Connection connection1 = listIterator.next();
 							if(!connection1.isClient()){
 								JSONObject output = new JSONObject();
 								output.put("command",LOCK_REQUEST);
@@ -120,7 +124,9 @@ public class ControlUtil {
 					username = (String) msg.get("username");
 					String data = processLockRequest(msg);
 					if(data.equals(LOCK_ALLOWED)){
-						for(Connection connection1:controlInstance.getConnections()){
+						ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
+						while(listIterator.hasNext()){
+							Connection connection1 = listIterator.next();
 							boolean isSameConnection = (connection1.getSocket().getInetAddress() == connection.getSocket().getInetAddress());
 							if(!isSameConnection && !connection1.isClient()){
 								resultOutput.put("command",data);
@@ -131,7 +137,9 @@ public class ControlUtil {
 							}
 						}
 					}else if(data.equals(LOCK_DENIED)){
-						for(Connection connection1:controlInstance.getConnections()){
+						ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
+						while(listIterator.hasNext()){
+							Connection connection1 = listIterator.next();
 							boolean isSameConnection = (connection1.getSocket().getInetAddress() == connection.getSocket().getInetAddress());
 							if(!isSameConnection && !connection1.isClient()){
 								resultOutput.put("command",data);
@@ -150,7 +158,9 @@ public class ControlUtil {
 					}
 					lockAllowedCount.put(username, count+1);
 					int totalServers = 0;
-					for(Connection connection1:controlInstance.getConnections()){
+					ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
+					while(listIterator.hasNext()){
+						Connection connection1 = listIterator.next();
 						if(!connection1.isClient()){
 							totalServers++;
 						}
@@ -241,10 +251,12 @@ public class ControlUtil {
 
     private boolean activityBroadcastUtil(Connection connection, JSONObject msg) {
 		try {
-			for(Connection con : controlInstance.getConnections()){
-				boolean isSameConnection = (con.getSocket().getInetAddress() == connection.getSocket().getInetAddress());
-			    if(!isSameConnection && ((con.isClient() && con.isLoggedInClient()) || (!con.isClient()))){
-                    con.writeMsg(msg.toJSONString());
+			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
+			while(listIterator.hasNext()){
+				Connection connection1 = listIterator.next();
+				boolean isSameConnection = (connection1.getSocket().getInetAddress() == connection.getSocket().getInetAddress());
+			    if(!isSameConnection && ((connection1.isClient() && connection1.isLoggedInClient()) || (!connection1.isClient()))){
+					connection1.writeMsg(msg.toJSONString());
                 }
             }
 
@@ -260,7 +272,9 @@ public class ControlUtil {
         String username = (String) msg.get("username");
         String secret = (String) msg.get("secret");
         if(username.equals("anonymous")){
-            for(Connection connection1 : controlInstance.getConnections()){
+			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
+			while(listIterator.hasNext()){
+				Connection connection1 = listIterator.next();
                 if(!connection1.isClient()){
                     resultOutput.put("command","ACTIVITY_BROADCAST");
                     resultOutput.put("activity",msg.get("activity"));
@@ -277,7 +291,9 @@ public class ControlUtil {
             connection.writeMsg(resultOutput.toJSONString());
             return true;
         }else {
-           for(Connection connection1 : controlInstance.getConnections()){
+			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
+			while(listIterator.hasNext()){
+				Connection connection1 = listIterator.next();
                if(!connection1.isClient()){
                    resultOutput.put("command","ACTIVITY_BROADCAST");
                    resultOutput.put("activity",msg.get("activity"));

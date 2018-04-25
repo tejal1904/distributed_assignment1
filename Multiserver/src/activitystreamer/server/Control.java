@@ -8,7 +8,11 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
@@ -17,7 +21,7 @@ import activitystreamer.util.Settings;
 
 public class Control extends Thread {
 	private static final Logger log = LogManager.getLogger();
-	private static ArrayList<Connection> connections;
+	private static CopyOnWriteArrayList<Connection> connections;
 	private Map<String, String> registeredClients;
 	//TODO: what if 2 clients have same username????
 	private Map<JSONObject,Connection> toBeRegisteredClients;
@@ -36,9 +40,9 @@ public class Control extends Thread {
 
 	public Control() {
 		// initialize the connections array
-		connections = new ArrayList<Connection>();
-        registeredClients = new HashMap<String, String>();
-        toBeRegisteredClients = new HashMap<JSONObject, Connection>();
+		connections = new CopyOnWriteArrayList<Connection>();
+        registeredClients = new ConcurrentHashMap<>();
+        toBeRegisteredClients = new ConcurrentHashMap<>();
 		// start a listener
 		try {
 			listener = new Listener();
@@ -167,7 +171,7 @@ public class Control extends Thread {
 		term=t;
 	}
 	
-	public final ArrayList<Connection> getConnections() {
+	public final CopyOnWriteArrayList <Connection> getConnections() {
 		return connections;
 	}
 
