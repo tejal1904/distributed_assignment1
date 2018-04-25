@@ -156,7 +156,6 @@ public class Control extends Thread {
 			}
 		}
 
-
 		for (Connection connection : Control.connections) {
 			if (connection.isOpen() && connection.getName().equals(Control.SERVER)) {
 				try {

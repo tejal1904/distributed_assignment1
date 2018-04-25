@@ -122,6 +122,7 @@ public class ControlUtil {
 			return true;
 		}
 		String username2 = (String) msg.get("username");
+		String secret = (String) msg.get("username");
 		JSONObject object = null;
 		Connection connection1 = null;
 		if(Control.getInstance().getGlobalRegisteredClients().containsKey(username2)){
@@ -134,6 +135,20 @@ public class ControlUtil {
 			}
 		}
 		if (null != connection1 && null != object) {
+			//sending lock_request to all other servers except the incoming one
+			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
+			while (listIterator.hasNext()) {
+				Connection connection2 = listIterator.next();
+				if(connection2.equals(connection))
+					continue;;
+				if (connection2.getName().equals(ControlUtil.SERVER)) {
+					JSONObject output = new JSONObject();
+					output.put("command", LOCK_REQUEST);
+					output.put("username", username2);
+					output.put("secret", secret);
+					connection2.writeMsg(output.toJSONString());
+				}
+			}
 			controlInstance.getToBeRegisteredClients().remove(object);
 			lockAllowedCount.remove(username2);
 			resultOutput.put("command", "REGISTER_FAILED");
@@ -196,7 +211,7 @@ public class ControlUtil {
 			return true;
 		}
 
-		String data = processLockRequest(msg);
+		String data = processLockRequest(msg, connection);
 		if (data.equals(LOCK_ALLOWED)) {
 			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 			controlInstance.addGlobalRegisteredClients(username3,secret3);
@@ -266,13 +281,28 @@ public class ControlUtil {
 		return false;
 	}
 
-	private String processLockRequest(JSONObject msg) {
+	private String processLockRequest(JSONObject msg, Connection connection) throws IOException {
 		String username = (String) msg.get("username");
-
+		String secret = (String) msg.get("secret");
 		if (controlInstance.getRegisteredClients().containsKey(username)) {
 			return LOCK_DENIED;
 		} else {
+			//sending lock_request to all other servers except the incoming one
+			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
+			while (listIterator.hasNext()) {
+				Connection connection1 = listIterator.next();
+				if(connection1.equals(connection))
+					continue;;
+				if (connection1.getName().equals(ControlUtil.SERVER)) {
+					JSONObject output = new JSONObject();
+					output.put("command", LOCK_REQUEST);
+					output.put("username", username);
+					output.put("secret", secret);
+					connection1.writeMsg(output.toJSONString());
+				}
+			}
 			return LOCK_ALLOWED;
+
 		}
 	}
 
