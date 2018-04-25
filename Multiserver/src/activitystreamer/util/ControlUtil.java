@@ -124,8 +124,6 @@ public class ControlUtil {
 					ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 					while (listIterator.hasNext()) {
 						Connection connection1 = listIterator.next();
-						// boolean isSameConnection = (connection1.getSocket().getInetAddress() ==
-						// connection.getSocket().getInetAddress());
 						if (!connection1.isClient()) {
 							resultOutput.put("command", data);
 							resultOutput.put("username", username3);
@@ -134,82 +132,10 @@ public class ControlUtil {
 							return false;
 						}
 					}
-<<<<<<< HEAD
 				} else if (data.equals(LOCK_DENIED)) {
-=======
-					if(connection.isLoggedInClient() == true) {
-                        resultOutput.put("command", "INVALID_MESSAGE");
-                        resultOutput.put("info","Client already logged in to the system");
-                        connection.writeMsg(resultOutput.toJSONString());
-                        return true;
-                    }
-					return false;
-				case ControlUtil.AUTHENTICATION:
-					String info = authenticateServer(connection,msg);
-					if(info.equals("SUCCESS")){
-						return false;
-					}else if(info.equals("AUTHENTICATION_FAIL")){
-						resultOutput.put("command",info);
-						resultOutput.put("info","the supplied secret is incorrect: " + secret);
-						connection.writeMsg(resultOutput.toJSONString());
-						return true;
-					}
-				case ControlUtil.LOGIN:
-				    return loginUtil(connection, msg);
-				case ControlUtil.LOGOUT:
-				    connection.setLoggedInClient(false);
-					return true;
-				case ControlUtil.ACTIVITY_MESSAGE:
-					return activityMessageUtil(connection, msg);
-				case ControlUtil.ACTIVITY_BROADCAST:
-                    connection.setClient(false);
-					return activityBroadcastUtil(connection, msg);
-				case ControlUtil.SERVER_ANNOUNCE:
-				    connection.setClient(false);				    
-					return serverAnnounce(msg);
-				case ControlUtil.LOCK_REQUEST:
-					//process received lock request
-					String username3 = (String) msg.get("username");
-					String data = processLockRequest(msg);
-					if(data.equals(LOCK_ALLOWED)){
-						ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
-						while(listIterator.hasNext()){
-							Connection connection1 = listIterator.next();
-							if(!connection1.isClient()){
-								resultOutput.put("command",data);
-								resultOutput.put("username", username3);
-								resultOutput.put("secret", secret);
-								connection1.writeMsg(resultOutput.toJSONString());
-								return false;
-							}
-						}
-					}else if(data.equals(LOCK_DENIED)){
-						ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
-						while(listIterator.hasNext()){
-							Connection connection1 = listIterator.next();
-							if(!connection1.isClient()){
-								resultOutput.put("command",data);
-								resultOutput.put("username", username3);
-								resultOutput.put("secret", secret);
-								connection1.writeMsg(resultOutput.toJSONString());
-								return false;
-							}
-						}
-					}
-				case  ControlUtil.LOCK_ALLOWED:
-					String username1 = (String) msg.get("username");
-					int count=0;
-					if(null != lockAllowedCount.get(username1)){
-						count = lockAllowedCount.get(username1);
-					}
-					lockAllowedCount.put(username1, count+1);
-					int totalServers = 0;
->>>>>>> branch 'master' of https://github.com/tejal1904/distributed_assignment1/
 					ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 					while (listIterator.hasNext()) {
 						Connection connection1 = listIterator.next();
-						// boolean isSameConnection = (connection1.getSocket().getInetAddress() ==
-						// connection.getSocket().getInetAddress());
 						if (!connection1.isClient()) {
 							resultOutput.put("command", data);
 							resultOutput.put("username", username3);
@@ -395,18 +321,13 @@ public class ControlUtil {
 			Iterator<String> stringIterator = serverList.keySet().iterator();
 			while (stringIterator.hasNext()) {
 				String object = stringIterator.next();
-<<<<<<< HEAD
 				if (null != object) {
 					if (controlInstance.getLoad() > ((Long) serverList.get(object).get("load")).intValue() + 2) {
-=======
-				if(null != object){
-					if(controlInstance.getLoad() > ((Long)serverList.get(object).get("load")).intValue() + 2) {
 						try {
 							connection.sleep(2000);
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
->>>>>>> branch 'master' of https://github.com/tejal1904/distributed_assignment1/
 						resultOutput.put("command", "REDIRECT");
 						resultOutput.put("hostname", (String) serverList.get(object).get("hostname"));
 						resultOutput.put("port", String.valueOf(serverList.get(object).get("port")));
