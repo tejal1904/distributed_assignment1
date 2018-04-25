@@ -4,10 +4,8 @@ import activitystreamer.server.Connection;
 import activitystreamer.server.Control;
 import activitystreamer.server.ServerPojo;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.ListIterator;
-import java.util.Map;
+import java.util.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
@@ -166,14 +164,19 @@ public class ControlUtil {
 						}
 					}
 					if(totalServers == lockAllowedCount.get(username)){
-						for(Map.Entry<JSONObject,Connection> entry:controlInstance.getToBeRegisteredClients().entrySet()){
-							if(username.equals(entry.getKey().get("username").toString())){
-								lockAllowedCount.remove(username);
-								controlInstance.addRegisteredClients(username,entry.getKey().get("secret").toString());
-								resultOutput.put("command","REGISTER_SUCCESS");
-								resultOutput.put("info","register success for "+username);
-								entry.getValue().writeMsg(resultOutput.toJSONString());
-								return false;
+						Iterator<JSONObject> iterator = controlInstance.getToBeRegisteredClients().keySet().iterator();
+						while(iterator.hasNext()){
+							JSONObject object = iterator.next();
+							Connection connection1 = controlInstance.getToBeRegisteredClients().get(object);
+							if(null != object && null != connection1){
+								if(username.equals(object.get("username").toString())){
+									lockAllowedCount.remove(username);
+									controlInstance.addRegisteredClients(username,object.get("secret").toString());
+									resultOutput.put("command","REGISTER_SUCCESS");
+									resultOutput.put("info","register success for "+username);
+									connection1.writeMsg(resultOutput.toJSONString());
+									return false;
+								}
 							}
 						}
 					}
@@ -317,14 +320,18 @@ public class ControlUtil {
             connection.setLoggedInClient(true);
 			resultOutput.put("command", "LOGIN_SUCCESS");
 			resultOutput.put("info", "logged in as user " + username);
-			connection.writeMsg(resultOutput.toJSONString());	
-			for(Map.Entry<String, JSONObject> entry:serverList.entrySet()) {
-				if(controlInstance.getLoad() > (((Long)entry.getValue().get("load")).intValue() + 2)) {
-					resultOutput.put("command", "REDIRECT");
-					resultOutput.put("hostname",(String) entry.getValue().get("hostname"));
-					resultOutput.put("port",(String) entry.getValue().get("port"));
-					connection.writeMsg(resultOutput.toJSONString());
-					return true;
+			connection.writeMsg(resultOutput.toJSONString());
+			Iterator<String> stringIterator = serverList.keySet().iterator();
+			while (stringIterator.hasNext()){
+				String object = stringIterator.next();
+				if(null != object){
+					if(controlInstance.getLoad() > ((Long)serverList.get(object).get("load")).intValue() + 2) {
+						resultOutput.put("command", "REDIRECT");
+						resultOutput.put("hostname",(String) serverList.get(object).get("hostname"));
+						resultOutput.put("port",(String) serverList.get(object).get("port"));
+						connection.writeMsg(resultOutput.toJSONString());
+						return true;
+					}
 				}
 			}			
 			return false;
