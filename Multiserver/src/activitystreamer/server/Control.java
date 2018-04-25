@@ -6,6 +6,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -157,8 +158,8 @@ public class Control extends Thread {
 					JSONObject output = new JSONObject();
 					output.put("command", "SERVER_ANNOUNCE");
 					output.put("load", load);
-					output.put("hostname", connection.getSocket().getInetAddress());
-					output.put("port", connection.getSocket().getPort());
+					output.put("hostname", InetAddress.getLocalHost().getHostAddress());
+					output.put("port", Settings.getLocalPort());
 					output.put("id", Settings.getId());
 					connection.writeMsg(output.toJSONString());
 				} catch (IOException e) {
