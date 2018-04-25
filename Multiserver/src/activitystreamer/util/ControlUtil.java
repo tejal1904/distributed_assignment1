@@ -72,11 +72,11 @@ public class ControlUtil {
 			case ControlUtil.SERVER_ANNOUNCE:
 				return serverAnnounce(msg);
 			case ControlUtil.LOCK_REQUEST:
-				return receiveLockRequestClient(msg);
+				return receiveLockRequestClient(msg, connection);
 			case ControlUtil.LOCK_ALLOWED:
-				return receiveLockAllowed(msg);
+				return receiveLockAllowed(msg, connection);
 			case ControlUtil.LOCK_DENIED:
-				return receiveLockDenied(msg);
+				return receiveLockDenied(msg, connection);
 			default:
 				resultOutput.put("command", "INVALID_MESSAGE");
 				resultOutput.put("info", "Invalid command");
@@ -114,7 +114,13 @@ public class ControlUtil {
 		return false;
 	}
 
-	private boolean receiveLockDenied(JSONObject msg) throws IOException {
+	private boolean receiveLockDenied(JSONObject msg, Connection connection) throws IOException {
+		if(!connection.getName().equals(ControlUtil.SERVER)){
+			resultOutput.put("command", "INVALID_INFO");
+			resultOutput.put("info", "received LOCK_DENIED from an unauthenticated server");
+			connection.writeMsg(resultOutput.toJSONString());
+			return true;
+		}
 		String username2 = (String) msg.get("username");
 		JSONObject object = null;
 		Connection connection1 = null;
@@ -138,8 +144,14 @@ public class ControlUtil {
 		return false;
 	}
 
-	private boolean receiveLockAllowed(JSONObject msg) throws IOException {
+	private boolean receiveLockAllowed(JSONObject msg, Connection connection) throws IOException {
 		String username1 = (String) msg.get("username");
+		if(!connection.getName().equals(ControlUtil.SERVER)){
+			resultOutput.put("command", "INVALID_INFO");
+			resultOutput.put("info", "received LOCK_ALLOWED from an unauthenticated server");
+			connection.writeMsg(resultOutput.toJSONString());
+			return true;
+		}
 		int count = 0;
 		if (null != lockAllowedCount.get(username1)) {
 			count = lockAllowedCount.get(username1);
@@ -173,10 +185,17 @@ public class ControlUtil {
 		return false;
 	}
 
-	private boolean receiveLockRequestClient(JSONObject msg) throws IOException {
+	private boolean receiveLockRequestClient(JSONObject msg, Connection connection) throws IOException {
 		// process received lock request
 		String username3 = (String) msg.get("username");
 		String secret3 = (String) msg.get("secret");
+		if(!connection.getName().equals(ControlUtil.SERVER)){
+			resultOutput.put("command", "INVALID_INFO");
+			resultOutput.put("info", "received LOCK_REQUEST from an unauthenticated server");
+			connection.writeMsg(resultOutput.toJSONString());
+			return true;
+		}
+
 		String data = processLockRequest(msg);
 		if (data.equals(LOCK_ALLOWED)) {
 			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
@@ -249,6 +268,7 @@ public class ControlUtil {
 
 	private String processLockRequest(JSONObject msg) {
 		String username = (String) msg.get("username");
+
 		if (controlInstance.getRegisteredClients().containsKey(username)) {
 			return LOCK_DENIED;
 		} else {
