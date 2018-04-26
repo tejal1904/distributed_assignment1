@@ -160,14 +160,6 @@ public class ControlUtil {
 			count = lockAllowedCount.get(username1);
 		}
 		lockAllowedCount.put(username1, count + 1);
-//		int totalServers = 0;
-//		ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
-//		while (listIterator.hasNext()) {
-//			Connection connection1 = listIterator.next();
-//			if (connection1.getName().equals(ControlUtil.SERVER)) {
-//				totalServers++;
-//			}
-//		}
 		if (serverList.size() == lockAllowedCount.get(username1)) {
 			Iterator<JSONObject> iterator = controlInstance.getToBeRegisteredClients().keySet().iterator();
 			while (iterator.hasNext()) {
@@ -277,16 +269,6 @@ public class ControlUtil {
 		if (controlInstance.getRegisteredClients().containsKey(username)) {
 			return LOCK_DENIED;
 		} else {
-			//sending lock_request to all other servers except the incoming one
-//			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
-//			while (listIterator.hasNext()) {
-//				Connection connection1 = listIterator.next();
-//				if(connection1.equals(connection))
-//					continue;
-//				if (connection1.getName().equals(ControlUtil.SERVER)) {					
-//					connection1.writeMsg(msg.toJSONString());
-//				}
-//			}
 			broadcastUtil(connection, msg);
 			return LOCK_ALLOWED;
 
@@ -413,7 +395,7 @@ public class ControlUtil {
 			resultOutput.put("command", "LOGIN_FAILED");
 			resultOutput.put("info", info);
 			connection.writeMsg(resultOutput.toJSONString());
-			return false;
+			return true;
 		}
 	}
 
