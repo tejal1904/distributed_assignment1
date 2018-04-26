@@ -134,21 +134,7 @@ public class ControlUtil {
 				connection1 = entry.getValue();
 			}
 		}
-		if (null != connection1 && null != object) {
-			//sending lock_denied to all other servers except the incoming one
-			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
-			while (listIterator.hasNext()) {
-				Connection connection2 = listIterator.next();
-				if(connection2.equals(connection))
-					continue;
-				if (connection2.getName().equals(ControlUtil.SERVER)) {
-					JSONObject output = new JSONObject();
-					output.put("command", LOCK_DENIED);
-					output.put("username", username2);
-					output.put("secret", secret);
-					connection2.writeMsg(output.toJSONString());
-				}
-			}
+		if (null != connection1 && null != object) {		
 			controlInstance.getToBeRegisteredClients().remove(object);
 			lockAllowedCount.remove(username2);
 			resultOutput.put("command", "REGISTER_FAILED");
@@ -156,6 +142,8 @@ public class ControlUtil {
 					object.get("username").toString() + " is already registered with the system");
 			connection1.writeMsg(resultOutput.toJSONString());
 		}
+		
+		broadcastUtil(connection, msg);
 		return false;
 	}
 
@@ -172,15 +160,15 @@ public class ControlUtil {
 			count = lockAllowedCount.get(username1);
 		}
 		lockAllowedCount.put(username1, count + 1);
-		int totalServers = 0;
-		ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
-		while (listIterator.hasNext()) {
-			Connection connection1 = listIterator.next();
-			if (connection1.getName().equals(ControlUtil.SERVER)) {
-				totalServers++;
-			}
-		}
-		if (totalServers == lockAllowedCount.get(username1)) {
+//		int totalServers = 0;
+//		ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
+//		while (listIterator.hasNext()) {
+//			Connection connection1 = listIterator.next();
+//			if (connection1.getName().equals(ControlUtil.SERVER)) {
+//				totalServers++;
+//			}
+//		}
+		if (serverList.size() == lockAllowedCount.get(username1)) {
 			Iterator<JSONObject> iterator = controlInstance.getToBeRegisteredClients().keySet().iterator();
 			while (iterator.hasNext()) {
 				JSONObject object = iterator.next();
@@ -197,6 +185,8 @@ public class ControlUtil {
 				}
 			}
 		}
+		
+		broadcastUtil(connection, msg);
 		return false;
 	}
 
@@ -288,19 +278,16 @@ public class ControlUtil {
 			return LOCK_DENIED;
 		} else {
 			//sending lock_request to all other servers except the incoming one
-			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
-			while (listIterator.hasNext()) {
-				Connection connection1 = listIterator.next();
-				if(connection1.equals(connection))
-					continue;
-				if (connection1.getName().equals(ControlUtil.SERVER)) {
-					JSONObject output = new JSONObject();
-					output.put("command", LOCK_REQUEST);
-					output.put("username", username);
-					output.put("secret", secret);
-					connection1.writeMsg(output.toJSONString());
-				}
-			}
+//			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
+//			while (listIterator.hasNext()) {
+//				Connection connection1 = listIterator.next();
+//				if(connection1.equals(connection))
+//					continue;
+//				if (connection1.getName().equals(ControlUtil.SERVER)) {					
+//					connection1.writeMsg(msg.toJSONString());
+//				}
+//			}
+			broadcastUtil(connection, msg);
 			return LOCK_ALLOWED;
 
 		}
@@ -320,18 +307,7 @@ public class ControlUtil {
 	private boolean serverAnnounce(JSONObject msg, Connection connection) throws IOException {
 		if (null != msg.get("id")) {
 			serverList.put((String) msg.get("id"), msg);
-			//sending lock_request to all other servers except the incoming one
-			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
-			while (listIterator.hasNext()) {
-				Connection connection1 = listIterator.next();
-				if(connection1.equals(connection))
-					continue;
-				if (connection1.getName().equals(ControlUtil.SERVER)) {
-					
-					connection1.writeMsg(msg.toJSONString());
-				}
-			}
-			
+			broadcastUtil(connection, msg);			
 		}
 		return false;
 	}
@@ -458,4 +434,22 @@ public class ControlUtil {
 			return "";
 		}
 	}
+	
+	private void broadcastUtil(Connection connection, JSONObject msg) {
+		try {
+			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
+			while (listIterator.hasNext()) {
+				Connection connection1 = listIterator.next();
+				boolean isSameConnection = (connection1.getSocket().getInetAddress() == connection.getSocket()
+						.getInetAddress());
+				if (!isSameConnection && connection1.getName().equals(ControlUtil.SERVER)) {
+					connection1.writeMsg(msg.toJSONString());
+				}
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 }
