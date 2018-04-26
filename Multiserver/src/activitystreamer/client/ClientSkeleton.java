@@ -95,11 +95,15 @@ public class ClientSkeleton extends Thread {
 						e.printStackTrace();
 					}
 				}else if(outputJson.get("command").equals("LOGIN_FAILED")){
+					socket = new Socket((String) outputJson.get("hostname"), (int) outputJson.get("port"));
+					outwriter = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
                     registerClient();
                 }else if(outputJson.get("command").equals("LOGIN_SUCCESS")){
                     textFrame = new TextFrame();
                 }else if(outputJson.get("command").equals("REGISTER_FAILED")){
                     System.out.println(outputJson.toJSONString());
+					inReader.close();
+					outwriter.close();
                 }else if(outputJson.get("command").equals("INVALID_MESSAGE")){
                     System.out.println(outputJson.toJSONString());
                     inReader.close();
