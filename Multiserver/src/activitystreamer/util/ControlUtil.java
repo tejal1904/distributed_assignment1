@@ -413,7 +413,7 @@ public class ControlUtil {
 			resultOutput.put("command", "LOGIN_FAILED");
 			resultOutput.put("info", info);
 			connection.writeMsg(resultOutput.toJSONString());
-			return true;
+			return false;
 		}
 	}
 

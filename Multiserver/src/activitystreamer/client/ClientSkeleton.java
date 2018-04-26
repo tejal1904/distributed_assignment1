@@ -7,7 +7,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
-
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -29,11 +28,11 @@ public class ClientSkeleton extends Thread {
 	}
 
 	public ClientSkeleton() {
-		textFrame = new TextFrame();
 		try {
 			socket = new Socket(Settings.getRemoteHostname(), Settings.getLocalPort());
 			inReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
 			outwriter = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+            loginClient();
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -59,6 +58,21 @@ public class ClientSkeleton extends Thread {
 		}
 	}
 
+	private synchronized void loginClient(){
+        JSONObject object = new JSONObject();
+        object.put("command","LOGIN");
+        object.put("username",Settings.getUsername());
+        object.put("secret", Settings.getSecret());
+        sendActivityObject(object);
+    }
+    private synchronized void registerClient(){
+        JSONObject object = new JSONObject();
+        object.put("command","REGISTER");
+        object.put("username",Settings.getUsername());
+        object.put("secret", Settings.getSecret());
+        sendActivityObject(object);
+    }
+
 	public void run() {
 		String message;
 		try {
@@ -72,12 +86,7 @@ public class ClientSkeleton extends Thread {
 						Thread.sleep(1000);
 						socket = new Socket((String) outputJson.get("hostname"), (int) outputJson.get("port"));
 						outwriter = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
-						JSONObject reLogin = new JSONObject();
-						reLogin.put("command", "LOGIN");
-						reLogin.put("username", Settings.getUsername());
-						reLogin.put("secret", Settings.getSecret());
-						outwriter.println(reLogin.toJSONString());
-						outwriter.flush();
+						loginClient();
 					} catch (UnknownHostException e) {
 						e.printStackTrace();
 					} catch (IOException e) {
@@ -85,8 +94,21 @@ public class ClientSkeleton extends Thread {
 					} catch(InterruptedException e) {
 						e.printStackTrace();
 					}
-				}
-				textFrame.setOutputText(outputJson);
+				}else if(outputJson.get("command").equals("LOGIN_FAILED")){
+                    registerClient();
+                }else if(outputJson.get("command").equals("LOGIN_SUCCESS")){
+                    textFrame = new TextFrame();
+                }else if(outputJson.get("command").equals("REGISTER_FAILED")){
+                    System.out.println(outputJson.toJSONString());
+                }else if(outputJson.get("command").equals("INVALID_MESSAGE")){
+                    System.out.println(outputJson.toJSONString());
+                    inReader.close();
+                    outwriter.close();
+                }else if(outputJson.get("command").equals("REGISTER_SUCCESS")){
+                    loginClient();
+                }else {
+                    textFrame.setOutputText(outputJson);
+                }
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
