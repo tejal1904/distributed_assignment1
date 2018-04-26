@@ -91,7 +91,7 @@ public class ClientSkeleton extends Thread {
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
-					if((message = inReader.readLine()) != null) {
+					if((inReader.readLine()) != null) {
 						if(outputJson.get("command").equals("REDIRECT")) {
 							socket.close();
 							try {
