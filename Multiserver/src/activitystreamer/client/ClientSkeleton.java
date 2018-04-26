@@ -104,10 +104,12 @@ public class ClientSkeleton extends Thread {
                     System.out.println(outputJson.toJSONString());
 					inReader.close();
 					outwriter.close();
+					socket.close();
                 }else if(outputJson.get("command").equals("INVALID_MESSAGE")){
                     System.out.println(outputJson.toJSONString());
                     inReader.close();
                     outwriter.close();
+                    socket.close();
                 }else if(outputJson.get("command").equals("REGISTER_SUCCESS")){
                     loginClient();
                 }else {
