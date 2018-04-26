@@ -376,11 +376,6 @@ public class ControlUtil {
 				String object = stringIterator.next();
 				if (null != object) {
 					if (controlInstance.getLoad() > ((Long) serverList.get(object).get("load")).intValue() + 2) {
-						try {
-							Thread.sleep(2000);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
 						resultOutput = new JSONObject();
 						resultOutput.put("command", "REDIRECT");
 						resultOutput.put("hostname", (String) serverList.get(object).get("hostname"));

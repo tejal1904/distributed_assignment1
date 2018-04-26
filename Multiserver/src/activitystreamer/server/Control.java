@@ -155,7 +155,7 @@ public class Control extends Thread {
 				load++;
 			}
 		}
-
+		System.out.println("load--> "+load);
 		for (Connection connection : Control.connections) {
 			if (connection.isOpen() && connection.getName().equals(Control.SERVER)) {
 				try {

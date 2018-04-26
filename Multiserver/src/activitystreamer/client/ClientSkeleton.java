@@ -19,6 +19,9 @@ public class ClientSkeleton extends Thread {
 	private PrintWriter outwriter;
 	private BufferedReader inReader;
 	private Socket socket;
+	private Socket loginSocket;
+	int count1 = 0;
+	int count2 = 0;
 
 	public static ClientSkeleton getInstance() {
 		if (clientSolution == null) {
@@ -88,28 +91,16 @@ public class ClientSkeleton extends Thread {
 					registerClient();
                 }else if(outputJson.get("command").equals("LOGIN_SUCCESS")){
 					try {
+						loginSocket = socket;
 						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					if((message = inReader.readLine()) != null) {
-						outputJson = (JSONObject) parser.parse(message);
-						if(outputJson.get("command").equals("REDIRECT")) {
-							outwriter.close();
-							inReader.close();
-							try {
-								socket = new Socket((String) outputJson.get("hostname"), Integer.valueOf(outputJson.get("port").toString()));
-								outwriter = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
-								inReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
-								loginClient();
-							} catch (UnknownHostException e) {
-								e.printStackTrace();
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-						}else {
+						if(loginSocket.isConnected()){
+							textFrame = new TextFrame();
+						}else if(socket.isConnected()){
 							textFrame = new TextFrame();
 						}
+
+					} catch (InterruptedException e) {
+						e.printStackTrace();
 					}
 					
                 }else if(outputJson.get("command").equals("REGISTER_FAILED")){
@@ -124,7 +115,19 @@ public class ClientSkeleton extends Thread {
                     socket.close();
                 }else if(outputJson.get("command").equals("REGISTER_SUCCESS")){
                     loginClient();
-                }else {
+                }else if(outputJson.get("command").equals("REDIRECT")) {
+					try {
+						socket.close();;
+						socket = new Socket((String) outputJson.get("hostname"), Integer.valueOf(outputJson.get("port").toString()));
+						outwriter = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+						inReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
+						loginClient();
+					} catch (UnknownHostException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				} else {
                     textFrame.setOutputText(outputJson);
                 }
 			}
