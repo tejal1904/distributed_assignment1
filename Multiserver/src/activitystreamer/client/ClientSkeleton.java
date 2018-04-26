@@ -49,7 +49,8 @@ public class ClientSkeleton extends Thread {
 	public void disconnect() {
 		try {
 			Thread.sleep(2000);
-			socket.close();
+			outwriter.close();
+			inReader.close();
 			textFrame.dispose();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -94,8 +95,8 @@ public class ClientSkeleton extends Thread {
 					if((message = inReader.readLine()) != null) {
 						outputJson = (JSONObject) parser.parse(message);
 						if(outputJson.get("command").equals("REDIRECT")) {
-							
-//							socket.close();
+							outwriter.close();
+							inReader.close();
 							try {
 								socket = new Socket((String) outputJson.get("hostname"), Integer.valueOf(outputJson.get("port").toString()));
 								outwriter = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
