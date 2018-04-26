@@ -87,14 +87,14 @@ public class ClientSkeleton extends Thread {
 					inReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
 					registerClient();
                 }else if(outputJson.get("command").equals("LOGIN_SUCCESS")){
-					try {
-						Thread.sleep(1000);
+					//try {
+						//Thread.sleep(1000);
 						if(!flag){
 						    textFrame = new TextFrame();
                         }
-					} catch (InterruptedException e) {
+					/*} catch (InterruptedException e) {
 						e.printStackTrace();
-					}
+					}*/
 					
                 }else if(outputJson.get("command").equals("REGISTER_FAILED")){
                     System.out.println(outputJson.toJSONString());
