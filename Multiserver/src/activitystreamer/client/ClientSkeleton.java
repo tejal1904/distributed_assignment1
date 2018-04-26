@@ -106,9 +106,9 @@ public class ClientSkeleton extends Thread {
 							} catch (IOException e) {
 								e.printStackTrace();
 							}
+						}else {
+							textFrame = new TextFrame();
 						}
-					} else {
-						textFrame = new TextFrame();
 					}
 					
                 }else if(outputJson.get("command").equals("REGISTER_FAILED")){
