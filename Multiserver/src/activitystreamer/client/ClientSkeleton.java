@@ -79,7 +79,6 @@ public class ClientSkeleton extends Thread {
 			while ((message = inReader.readLine()) != null) {
 				JSONParser parser = new JSONParser();
 				JSONObject outputJson = (JSONObject) parser.parse(message);
-				System.out.println("message Received from server: " + message);
 				if(outputJson.get("command").equals("REDIRECT")) {
 					socket.close();
 					try {
@@ -95,11 +94,9 @@ public class ClientSkeleton extends Thread {
 						e.printStackTrace();
 					}
 				}else if(outputJson.get("command").equals("LOGIN_FAILED")){
-					System.out.println(outputJson.toString());
 					socket = new Socket(Settings.getRemoteHostname(), Settings.getLocalPort());
 					outwriter = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
 					inReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
-					System.out.println(outwriter.toString());
 					registerClient();
                 }else if(outputJson.get("command").equals("LOGIN_SUCCESS")){
                     textFrame = new TextFrame();
