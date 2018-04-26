@@ -80,28 +80,33 @@ public class ClientSkeleton extends Thread {
 				System.out.println(message.toString());
 				JSONParser parser = new JSONParser();
 				JSONObject outputJson = (JSONObject) parser.parse(message);
-				if(outputJson.get("command").equals("REDIRECT")) {
-					socket.close();
-					try {
-						Thread.sleep(1000);
-						socket = new Socket((String) outputJson.get("hostname"), Integer.valueOf(outputJson.get("port").toString()));
-						outwriter = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
-						inReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
-						loginClient();
-					} catch (UnknownHostException e) {
-						e.printStackTrace();
-					} catch (IOException e) {
-						e.printStackTrace();
-					} catch(InterruptedException e) {
-						e.printStackTrace();
-					}
-				}else if(outputJson.get("command").equals("LOGIN_FAILED")){
+				if(outputJson.get("command").equals("LOGIN_FAILED")){
 					socket = new Socket(Settings.getRemoteHostname(), Settings.getLocalPort());
 					outwriter = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
 					inReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
 					registerClient();
                 }else if(outputJson.get("command").equals("LOGIN_SUCCESS")){
-                    textFrame = new TextFrame();
+					try {
+						Thread.sleep(2000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					if((message = inReader.readLine()) != null) {
+						if(outputJson.get("command").equals("REDIRECT")) {
+							socket.close();
+							try {
+								socket = new Socket((String) outputJson.get("hostname"), Integer.valueOf(outputJson.get("port").toString()));
+								outwriter = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+								inReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
+								loginClient();
+							} catch (UnknownHostException e) {
+								e.printStackTrace();
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+						}
+					}
+					textFrame = new TextFrame();
                 }else if(outputJson.get("command").equals("REGISTER_FAILED")){
                     System.out.println(outputJson.toJSONString());
 					inReader.close();
