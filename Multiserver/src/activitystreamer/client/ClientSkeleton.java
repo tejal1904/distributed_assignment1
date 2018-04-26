@@ -34,7 +34,6 @@ public class ClientSkeleton extends Thread {
 			socket = new Socket(Settings.getRemoteHostname(), Settings.getLocalPort());
 			inReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
 			outwriter = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
-
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -67,6 +66,26 @@ public class ClientSkeleton extends Thread {
 				JSONParser parser = new JSONParser();
 				JSONObject outputJson = (JSONObject) parser.parse(message);
 				System.out.println("message Received from server: " + message);
+				if(outputJson.get("command").equals("REDIRECT")) {
+					socket.close();
+					try {
+						Thread.sleep(1000);
+						socket = new Socket((String) outputJson.get("hostname"), (int) outputJson.get("port"));
+						outwriter = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+						JSONObject reLogin = new JSONObject();
+						reLogin.put("command", "LOGIN");
+						reLogin.put("username", Settings.getUsername());
+						reLogin.put("secret", Settings.getSecret());
+						outwriter.println(reLogin.toJSONString());
+						outwriter.flush();
+					} catch (UnknownHostException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					} catch(InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
 				textFrame.setOutputText(outputJson);
 			}
 		} catch (IOException e) {
