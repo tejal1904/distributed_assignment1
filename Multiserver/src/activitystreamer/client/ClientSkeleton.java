@@ -19,10 +19,7 @@ public class ClientSkeleton extends Thread {
 	private PrintWriter outwriter;
 	private BufferedReader inReader;
 	private Socket socket;
-	private Socket loginSocket;
-	int count1 = 0;
-	int count2 = 0;
-
+	boolean flag = false;
 	public static ClientSkeleton getInstance() {
 		if (clientSolution == null) {
 			clientSolution = new ClientSkeleton();
@@ -91,14 +88,10 @@ public class ClientSkeleton extends Thread {
 					registerClient();
                 }else if(outputJson.get("command").equals("LOGIN_SUCCESS")){
 					try {
-						loginSocket = socket;
 						Thread.sleep(1000);
-						if(loginSocket.isConnected()){
-							textFrame = new TextFrame();
-						}else if(socket.isConnected()){
-							textFrame = new TextFrame();
-						}
-
+						if(!flag){
+						    textFrame = new TextFrame();
+                        }
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -117,7 +110,8 @@ public class ClientSkeleton extends Thread {
                     loginClient();
                 }else if(outputJson.get("command").equals("REDIRECT")) {
 					try {
-						socket.close();;
+					    flag = true;
+						socket.close();
 						socket = new Socket((String) outputJson.get("hostname"), Integer.valueOf(outputJson.get("port").toString()));
 						outwriter = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
 						inReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
