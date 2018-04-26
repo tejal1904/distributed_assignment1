@@ -77,14 +77,16 @@ public class ClientSkeleton extends Thread {
 		String message;
 		try {
 			while ((message = inReader.readLine()) != null) {
+				System.out.println(message.toString());
 				JSONParser parser = new JSONParser();
 				JSONObject outputJson = (JSONObject) parser.parse(message);
 				if(outputJson.get("command").equals("REDIRECT")) {
 					socket.close();
 					try {
 						Thread.sleep(1000);
-						socket = new Socket((String) outputJson.get("hostname"), (int) outputJson.get("port"));
+						socket = new Socket((String) outputJson.get("hostname"), Integer.valueOf(outputJson.get("port").toString()));
 						outwriter = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+						inReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
 						loginClient();
 					} catch (UnknownHostException e) {
 						e.printStackTrace();
