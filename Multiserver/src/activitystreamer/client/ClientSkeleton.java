@@ -87,13 +87,15 @@ public class ClientSkeleton extends Thread {
 					registerClient();
                 }else if(outputJson.get("command").equals("LOGIN_SUCCESS")){
 					try {
-						Thread.sleep(2000);
+						Thread.sleep(1000);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
-					if((inReader.readLine()) != null) {
+					if((message = inReader.readLine()) != null) {
+						outputJson = (JSONObject) parser.parse(message);
 						if(outputJson.get("command").equals("REDIRECT")) {
-							socket.close();
+							
+//							socket.close();
 							try {
 								socket = new Socket((String) outputJson.get("hostname"), Integer.valueOf(outputJson.get("port").toString()));
 								outwriter = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
@@ -105,8 +107,10 @@ public class ClientSkeleton extends Thread {
 								e.printStackTrace();
 							}
 						}
+					} else {
+						textFrame = new TextFrame();
 					}
-					textFrame = new TextFrame();
+					
                 }else if(outputJson.get("command").equals("REGISTER_FAILED")){
                     System.out.println(outputJson.toJSONString());
 					inReader.close();
