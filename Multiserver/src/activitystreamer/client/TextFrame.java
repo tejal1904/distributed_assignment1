@@ -85,7 +85,7 @@ public class TextFrame extends JFrame implements ActionListener {
 		String prettyJsonString = gson.toJson(je);
 		String failCommand = (String) obj.get("command");
 		boolean closeClient = failCommand.equals("LOGIN_FAILED") || failCommand.equals("REGISTER_FAILED") || 
-			failCommand.equals("INVALID_MESSAGE") || failCommand.equals("REDIRECT") || failCommand.equals("AUTHENTICATION_FAIL");
+			failCommand.equals("INVALID_MESSAGE") || failCommand.equals("AUTHENTICATION_FAIL");
 		outputText.setText(prettyJsonString);
 		outputText.revalidate();
 		outputText.repaint();
