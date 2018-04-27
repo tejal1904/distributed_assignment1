@@ -64,6 +64,11 @@ public class Client {
 
 		if (cmd.hasOption("u")) {
 			Settings.setUsername(cmd.getOptionValue("u"));
+			if(!cmd.hasOption("s") && !Settings.getUsername().equals("anonymous")) {
+				String secret = Settings.nextSecret();
+				Settings.setSecret(secret);
+				System.out.println("Secret:"+ secret);
+			}
 		}
 
 		log.info("starting client");
