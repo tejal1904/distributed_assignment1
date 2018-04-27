@@ -43,38 +43,45 @@ public class ClientSkeleton extends Thread {
         start();
     }
 
-    public void sendActivityObject(JSONObject activityObj) {
-        outwriter.println(activityObj.toString());
+    @SuppressWarnings("unchecked")
+	public void sendActivityObject(JSONObject activityObj) {
+    	JSONObject sendObject = new JSONObject();
+    	sendObject.put("command", "ACTIVITY_MESSAGE");
+    	sendObject.put("username", Settings.getUsername());
+    	sendObject.put("secret", Settings.getSecret());
+    	sendObject.put("activity", activityObj);
+        outwriter.println(sendObject.toString());
         outwriter.flush();
     }
 
     public void disconnect() {
         try {
-            Thread.sleep(2000);
             outwriter.close();
             inReader.close();
             textFrame.dispose();
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 
-    private synchronized void loginClient() {
+    @SuppressWarnings("unchecked")
+	private synchronized void loginClient() {
         JSONObject object = new JSONObject();
         object.put("command", "LOGIN");
         object.put("username", Settings.getUsername());
         object.put("secret", Settings.getSecret());
-        sendActivityObject(object);
+        outwriter.println(object.toString());
+        outwriter.flush();
     }
 
-    private synchronized void registerClient() {
+    @SuppressWarnings("unchecked")
+	private synchronized void registerClient() {
         JSONObject object = new JSONObject();
         object.put("command", "REGISTER");
         object.put("username", Settings.getUsername());
         object.put("secret", Settings.getSecret());
-        sendActivityObject(object);
+        outwriter.println(object.toString());
+        outwriter.flush();
     }
 
     public void run() {

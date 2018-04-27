@@ -99,6 +99,7 @@ public class ControlUtil {
 
 	}
 
+	@SuppressWarnings("unchecked")
 	private boolean authenticateServer(JSONObject msg, Connection connection) throws IOException {
 		String secret1 = (String) msg.get("secret");
 		String info = processAuthenticate(connection, msg);
@@ -114,15 +115,15 @@ public class ControlUtil {
 		return false;
 	}
 
+	@SuppressWarnings("unchecked")
 	private boolean receiveLockDenied(JSONObject msg, Connection connection) throws IOException {
 		if(!connection.getName().equals(ControlUtil.SERVER)){
-			resultOutput.put("command", "INVALID_INFO");
+			resultOutput.put("command", "INVALID_MESSAGE");
 			resultOutput.put("info", "received LOCK_DENIED from an unauthenticated server");
 			connection.writeMsg(resultOutput.toJSONString());
 			return true;
 		}
 		String username2 = (String) msg.get("username");
-		String secret = (String) msg.get("username");
 		JSONObject object = null;
 		Connection connection1 = null;
 		if(Control.getInstance().getGlobalRegisteredClients().containsKey(username2)){
@@ -147,10 +148,11 @@ public class ControlUtil {
 		return false;
 	}
 
+	@SuppressWarnings("unchecked")
 	private boolean receiveLockAllowed(JSONObject msg, Connection connection) throws IOException {
 		String username1 = (String) msg.get("username");
 		if(!connection.getName().equals(ControlUtil.SERVER)){
-			resultOutput.put("command", "INVALID_INFO");
+			resultOutput.put("command", "INVALID_MESSAGE");
 			resultOutput.put("info", "received LOCK_ALLOWED from an unauthenticated server");
 			connection.writeMsg(resultOutput.toJSONString());
 			return true;
@@ -182,12 +184,13 @@ public class ControlUtil {
 		return false;
 	}
 
+	@SuppressWarnings("unchecked")
 	private boolean receiveLockRequestClient(JSONObject msg, Connection connection) throws IOException {
 		// process received lock request
 		String username3 = (String) msg.get("username");
 		String secret3 = (String) msg.get("secret");
 		if(!connection.getName().equals(ControlUtil.SERVER)){
-			resultOutput.put("command", "INVALID_INFO");
+			resultOutput.put("command", "INVALID_MESSAGE");
 			resultOutput.put("info", "received LOCK_REQUEST from an unauthenticated server");
 			connection.writeMsg(resultOutput.toJSONString());
 			return true;
@@ -223,6 +226,7 @@ public class ControlUtil {
 		return false;
 	}
 
+	@SuppressWarnings("unchecked")
 	private boolean registerClient(JSONObject msg, Connection connection) throws IOException {
 		String username = (String) msg.get("username");
 		String secret = (String) msg.get("secret");
@@ -265,7 +269,6 @@ public class ControlUtil {
 
 	private String processLockRequest(JSONObject msg, Connection connection) throws IOException {
 		String username = (String) msg.get("username");
-		String secret = (String) msg.get("secret");
 		if (controlInstance.getRegisteredClients().containsKey(username)) {
 			return LOCK_DENIED;
 		} else {
