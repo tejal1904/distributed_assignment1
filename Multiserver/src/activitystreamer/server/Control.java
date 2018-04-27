@@ -85,7 +85,6 @@ public class Control extends Thread {
 		}
 	}
 
-
 	/*
 	 * A new incoming connection has been established, and a reference is returned
 	 * to it
