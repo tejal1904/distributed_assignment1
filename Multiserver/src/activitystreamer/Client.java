@@ -67,7 +67,6 @@ public class Client {
 			if(!cmd.hasOption("s") && !Settings.getUsername().equals("anonymous")) {
 				String secret = Settings.nextSecret();
 				Settings.setSecret(secret);
-				System.out.println("Secret:"+ secret);
 			}
 		}
 

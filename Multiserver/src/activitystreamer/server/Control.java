@@ -1,10 +1,7 @@
 package activitystreamer.server;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Map;
@@ -29,7 +26,6 @@ public class Control extends Thread {
 	private static Listener listener;
 	protected static Control control = null;
 	private PrintWriter outwriter;
-	private BufferedReader inReader;
 	private int load;
 
 	public static Control getInstance() {
@@ -107,17 +103,13 @@ public class Control extends Thread {
 		c.setName(Control.SERVER);
 		connections.add(c);
 
-		DataInputStream in = new DataInputStream(s.getInputStream());
 		DataOutputStream out = new DataOutputStream(s.getOutputStream());
 		outwriter = new PrintWriter(out, true);
-		inReader = new BufferedReader(new InputStreamReader(in));
 		JSONObject newCommand = new JSONObject();
 		newCommand.put("command", "AUTHENTICATE");
 		newCommand.put("secret", Settings.getSecret());
 		outwriter.println(newCommand);
 		outwriter.flush();
-		String message = inReader.readLine();
-		System.out.println("message Received from server: " + message);
 		return c;
 	}
 
@@ -153,7 +145,6 @@ public class Control extends Thread {
 				load++;
 			}
 		}
-		System.out.println("load--> "+load);
 		for (Connection connection : Control.connections) {
 			if (connection.isOpen() && connection.getName().equals(Control.SERVER)) {
 				try {
