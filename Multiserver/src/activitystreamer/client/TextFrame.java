@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -74,6 +75,12 @@ public class TextFrame extends JFrame implements ActionListener {
 		setLocationRelativeTo(null);
 		setSize(1280, 768);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		addWindowListener(new java.awt.event.WindowAdapter() {
+		    @Override
+		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+		    	ClientSkeleton.getInstance().disconnect();
+		    }
+		});
 		setVisible(true);
 	}
 
@@ -105,7 +112,7 @@ public class TextFrame extends JFrame implements ActionListener {
 				log.error("invalid JSON object entered into input text field, data not sent");
 			}
 
-		} else if (e.getSource() == disconnectButton) {
+		} else if (e.getSource() == disconnectButton) {			
 			ClientSkeleton.getInstance().disconnect();
 		}
 	}

@@ -56,6 +56,10 @@ public class ClientSkeleton extends Thread {
 
     public void disconnect() {
         try {
+        	JSONObject logout = new JSONObject();
+        	logout.put("command", "LOGOUT");
+        	outwriter.println(logout.toJSONString());
+        	outwriter.flush();
             outwriter.close();
             inReader.close();
             textFrame.dispose();
