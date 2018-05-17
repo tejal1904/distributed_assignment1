@@ -26,6 +26,7 @@ public class ControlUtil {
 	public static final String LOCK_DENIED = "LOCK_DENIED";
 	public static final String LOCK_ALLOWED = "LOCK_ALLOWED";
 	private static final String SERVER = "SERVER";
+	private static final String SERVER_BROKEN = "SERVER_BROKEN";
 	public static Map<String, Integer> lockAllowedCount = new HashMap<>();
 	public static Map<String, JSONObject> serverList = new HashMap<>();
 
@@ -77,6 +78,8 @@ public class ControlUtil {
 				return receiveLockAllowed(msg, connection);
 			case ControlUtil.LOCK_DENIED:
 				return receiveLockDenied(msg, connection);
+			case ControlUtil.SERVER_BROKEN:
+				return broadcastServerBroken(msg, connection);
 			default:
 				resultOutput.put("command", "INVALID_MESSAGE");
 				resultOutput.put("info", "Invalid command");
@@ -97,7 +100,7 @@ public class ControlUtil {
 		}
 		return false;
 
-	}
+	}	
 
 	@SuppressWarnings("unchecked")
 	private boolean authenticateServer(JSONObject msg, Connection connection) throws IOException {
@@ -432,4 +435,24 @@ public class ControlUtil {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	public void sendConnectionLostMessage(Connection con) {
+		for (Connection connection : controlInstance.getConnections()) {
+			if (connection.isOpen() && connection.getName().equals(ControlUtil.SERVER)) {
+				try {
+					JSONObject output = new JSONObject();
+					output.put("command", "SERVER_BROKEN");
+					output.put("hostname", con.getSocket().getRemoteSocketAddress());
+					connection.writeMsg(output.toJSONString());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}		
+	}
+	
+	private boolean broadcastServerBroken(JSONObject msg, Connection connection) {
+		broadcastUtil(connection, msg);
+		return false;
+	}
 }
