@@ -11,6 +11,7 @@ import java.net.Socket;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import activitystreamer.util.ControlUtil;
 import activitystreamer.util.Settings;
 
 public class Connection extends Thread {
@@ -66,10 +67,16 @@ public class Connection extends Thread {
 			while (!term && (data = inreader.readLine()) != null) {
 				term = Control.getInstance().process(this, data);
 			}
+			if(this.getName().equals("SERVER")) {
+				ControlUtil.getInstance().sendConnectionLostMessage(this);
+			}
 			log.debug("connection closed to " + Settings.socketAddress(socket));
 			Control.getInstance().connectionClosed(this);
 			in.close();
 		} catch (IOException e) {
+			if(this.getName().equals("SERVER")) {
+				ControlUtil.getInstance().sendConnectionLostMessage(this);
+			}
 			log.error("connection " + Settings.socketAddress(socket) + " closed with exception: " + e);
 			Control.getInstance().connectionClosed(this);
 		}
