@@ -154,6 +154,7 @@ public class Control extends Thread {
 					output.put("hostname", Settings.getLocalHostname());
 					output.put("port", Settings.getLocalPort());
 					output.put("id", Settings.getId());
+					output.put("clientList", getRegisteredClients());
 					connection.writeMsg(output.toJSONString());
 				} catch (IOException e) {
 					e.printStackTrace();
