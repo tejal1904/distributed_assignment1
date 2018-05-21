@@ -484,7 +484,9 @@ public class ControlUtil {
 	}
 	
 	private boolean broadcastServerBroken(JSONObject msg, Connection connection) {
-		serverList.remove(msg.get(""));
+		if(serverList.containsKey((String) msg.get("serverId"))) {
+			serverList.remove(msg.get("serverId"));
+		}
 		broadcastUtil(connection, msg);
 		return false;
 	}
