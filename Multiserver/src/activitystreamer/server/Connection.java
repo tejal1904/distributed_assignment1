@@ -24,6 +24,8 @@ public class Connection extends Thread {
 	private Socket socket;
 	private boolean term = false;
 	private boolean loggedInClient = false;
+	private boolean isChild = false;
+	private String connectedServerId = null;
 
 	Connection(Socket socket) throws IOException {
 		in = new DataInputStream(socket.getInputStream());
@@ -97,6 +99,22 @@ public class Connection extends Thread {
 
 	public void setLoggedInClient(boolean loggedInClient) {
 		this.loggedInClient = loggedInClient;
+	}
+
+	public boolean isChild() {
+		return isChild;
+	}
+
+	public void setChild(boolean isChild) {
+		this.isChild = isChild;
+	}
+
+	public String getConnectedServerId() {
+		return connectedServerId;
+	}
+
+	public void setConnectedServerId(String connectedServerId) {
+		this.connectedServerId = connectedServerId;
 	}
 
 }

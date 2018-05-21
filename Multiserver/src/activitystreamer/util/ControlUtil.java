@@ -1,6 +1,8 @@
 package activitystreamer.util;
 
 import java.io.IOException;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -114,6 +116,7 @@ public class ControlUtil {
 		String info = processAuthenticate(connection, msg);
 		if (info.equals("SUCCESS")) {
 			connection.setName(ControlUtil.SERVER);
+			connection.setConnectedServerId((String) msg.get("id")); 
 			resultOutput.put("command", "AUTHENTICATE_SUCCESS");
 			resultOutput.put("serverDetail", Settings.getId());
 			resultOutput.put("clientList",Control.getInstance().getGlobalRegisteredClients());
@@ -456,12 +459,22 @@ public class ControlUtil {
 
 	@SuppressWarnings("unchecked")
 	public void sendConnectionLostMessage(Connection con) {
+		if(con.isChild()) {
+			//Loop thru and establish new connection to its parent.
+			Socket newServer = getSocketDetails(controlInstance.getParentServerId());
+			try {
+				controlInstance.outgoingConnection(newServer);
+			} catch (IOException e) {
+				
+				e.printStackTrace();
+			}
+		}
 		for (Connection connection : controlInstance.getConnections()) {
 			if (connection.isOpen() && connection.getName().equals(ControlUtil.SERVER)) {
 				try {
 					JSONObject output = new JSONObject();
 					output.put("command", "SERVER_BROKEN");
-					output.put("hostname", con.getSocket().getRemoteSocketAddress());
+					output.put("serverId", con.getConnectedServerId());
 					connection.writeMsg(output.toJSONString());
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -471,6 +484,7 @@ public class ControlUtil {
 	}
 	
 	private boolean broadcastServerBroken(JSONObject msg, Connection connection) {
+		serverList.remove(msg.get(""));
 		broadcastUtil(connection, msg);
 		return false;
 	}
@@ -486,7 +500,30 @@ public class ControlUtil {
 				controlInstance.addGlobalRegisteredClients(clientUsername,clientPassword);
 			}
 		}
+		connection.setChild(true);
+		connection.setConnectedServerId((String) msg.get("serverDetail"));
 		controlInstance.setParentServerId((String) msg.get("serverDetail"));
 		return false;
+	}
+	
+	private Socket getSocketDetails(String serverId) {
+		JSONObject serverDetails = serverList.get(serverId);
+		Socket newSocket = null;
+		String parentId = (String) serverDetails.get("parentId");
+		if(parentId != null) {
+			try {
+				newSocket = new Socket((String) serverDetails.get("parentServerName"), (Integer) serverDetails.get("parentServerPort"));
+			} catch (UnknownHostException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				newSocket = getSocketDetails(parentId);
+				e.printStackTrace();
+			} 
+		}else {
+			//return some child or adjacent server
+			
+		}
+		return newSocket;
 	}
 }

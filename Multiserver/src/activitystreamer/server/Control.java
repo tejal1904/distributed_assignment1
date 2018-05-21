@@ -101,7 +101,7 @@ public class Control extends Thread {
 	public synchronized Connection outgoingConnection(Socket s) throws IOException {
 		log.debug("outgoing connection: " + Settings.socketAddress(s));
 		Connection c = new Connection(s);
-		c.setName(Control.SERVER);
+		c.setName(Control.SERVER);		
 		
 		connections.add(c);
 		
@@ -110,6 +110,7 @@ public class Control extends Thread {
 		JSONObject newCommand = new JSONObject();
 		newCommand.put("command", "AUTHENTICATE");
 		newCommand.put("secret", Settings.getSecret());
+		newCommand.put("id", Settings.getId());
 		
 		outwriter.println(newCommand);
 		outwriter.flush();
@@ -160,7 +161,7 @@ public class Control extends Thread {
 					output.put("clientList", getRegisteredClients());
 					output.put("parentServerName",Settings.getRemoteHostname());
 					output.put("parentServerPort", Settings.getRemotePort());
-//					output.put("parentId", getParentServerId());
+					output.put("parentId", getParentServerId());
 					connection.writeMsg(output.toJSONString());
 				} catch (IOException e) {
 					e.printStackTrace();
