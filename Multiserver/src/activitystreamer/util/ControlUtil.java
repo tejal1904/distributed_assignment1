@@ -3,6 +3,7 @@ package activitystreamer.util;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
@@ -27,8 +28,11 @@ public class ControlUtil {
 	public static final String LOCK_ALLOWED = "LOCK_ALLOWED";
 	private static final String SERVER = "SERVER";
 	private static final String SERVER_BROKEN = "SERVER_BROKEN";
+	private static final String GLOBAL_CLIENTS = "GLOBAL_CLIENTS";
+	private static final String AUTHENTICATE_SUCCESS = "AUTHENTICATE_SUCCESS";
 	public static Map<String, Integer> lockAllowedCount = new HashMap<>();
 	public static Map<String, JSONObject> serverList = new HashMap<>();
+	public static Map<String,List<Connection>> serverClientList = new HashMap<>();
 
 	JSONObject resultOutput;
 	JSONParser parser = new JSONParser();
@@ -80,6 +84,8 @@ public class ControlUtil {
 				return receiveLockDenied(msg, connection);
 			case ControlUtil.SERVER_BROKEN:
 				return broadcastServerBroken(msg, connection);
+			case ControlUtil.AUTHENTICATE_SUCCESS:
+				return handleAuthSuccess(msg,connection);	
 			default:
 				resultOutput.put("command", "INVALID_MESSAGE");
 				resultOutput.put("info", "Invalid command");
@@ -108,6 +114,10 @@ public class ControlUtil {
 		String info = processAuthenticate(connection, msg);
 		if (info.equals("SUCCESS")) {
 			connection.setName(ControlUtil.SERVER);
+			resultOutput.put("command", "AUTHENTICATE_SUCCESS");
+			resultOutput.put("serverDetail", Settings.getId());
+			resultOutput.put("clientList",Control.getInstance().getGlobalRegisteredClients());
+			connection.writeMsg(resultOutput.toJSONString());
 			return false;
 		} else if (info.equals("AUTHENTICATION_FAIL")) {
 			resultOutput.put("command", info);
@@ -294,12 +304,10 @@ public class ControlUtil {
 	private boolean serverAnnounce(JSONObject msg, Connection connection) throws IOException {
 		if (null != msg.get("id")) {
 			serverList.put((String) msg.get("id"), msg);
-			Map<String,String> receivedClients = (Map<String,String>) msg.get("clientList"); 
-//			Iterator<String> clientIterator = receivedClients.keySet().iterator();
+			Map<String,String> receivedClients = (Map<String,String>) msg.get("clientList");
 			Iterator clientIterator = receivedClients.entrySet().iterator();
 			while (clientIterator.hasNext()) {
 				Map.Entry client = (Map.Entry)clientIterator.next();
-//				String clientUserName = clientIterator.next();
 				String clientUsername = (String) client.getKey();
 				String clientPassword = (String) client.getValue();
 				if (!controlInstance.getGlobalRegisteredClients().containsKey(clientUsername)) {
@@ -464,6 +472,21 @@ public class ControlUtil {
 	
 	private boolean broadcastServerBroken(JSONObject msg, Connection connection) {
 		broadcastUtil(connection, msg);
+		return false;
+	}
+	
+	private boolean handleAuthSuccess(JSONObject msg, Connection connection) {
+		Map<String,String> receivedClients = (Map<String,String>) msg.get("clientList");
+		Iterator clientIterator = receivedClients.entrySet().iterator();
+		while (clientIterator.hasNext()) {
+			Map.Entry client = (Map.Entry)clientIterator.next();
+			String clientUsername = (String) client.getKey();
+			String clientPassword = (String) client.getValue();
+			if (!controlInstance.getGlobalRegisteredClients().containsKey(clientUsername)) {
+				controlInstance.addGlobalRegisteredClients(clientUsername,clientPassword);
+			}
+		}
+		controlInstance.setParentServerId((String) msg.get("serverDetail"));
 		return false;
 	}
 }

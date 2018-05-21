@@ -22,6 +22,7 @@ public class Control extends Thread {
 	private Map<String, String> registeredClients;
 	private Map<JSONObject, Connection> toBeRegisteredClients;
 	private Map<String, String> globalRegisteredClients;
+	private String parentServerId = null;
 	private static boolean term = false;
 	private static Listener listener;
 	protected static Control control = null;
@@ -101,13 +102,15 @@ public class Control extends Thread {
 		log.debug("outgoing connection: " + Settings.socketAddress(s));
 		Connection c = new Connection(s);
 		c.setName(Control.SERVER);
+		
 		connections.add(c);
-
+		
 		DataOutputStream out = new DataOutputStream(s.getOutputStream());
 		outwriter = new PrintWriter(out, true);
 		JSONObject newCommand = new JSONObject();
 		newCommand.put("command", "AUTHENTICATE");
 		newCommand.put("secret", Settings.getSecret());
+		
 		outwriter.println(newCommand);
 		outwriter.flush();
 		return c;
@@ -155,6 +158,9 @@ public class Control extends Thread {
 					output.put("port", Settings.getLocalPort());
 					output.put("id", Settings.getId());
 					output.put("clientList", getRegisteredClients());
+					output.put("parentServerName",Settings.getRemoteHostname());
+					output.put("parentServerPort", Settings.getRemotePort());
+//					output.put("parentId", getParentServerId());
 					connection.writeMsg(output.toJSONString());
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -200,5 +206,12 @@ public class Control extends Thread {
 		globalRegisteredClients.put(username, secret);
 	}
 
+	public String getParentServerId() {
+		return parentServerId;
+	}
+
+	public void setParentServerId(String parentServerId) {
+		this.parentServerId = parentServerId;
+	}
 
 }
