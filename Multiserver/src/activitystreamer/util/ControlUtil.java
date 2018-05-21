@@ -5,9 +5,11 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Queue;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -346,6 +348,27 @@ public class ControlUtil {
 	private boolean activityMessageUtil(Connection connection, JSONObject msg) throws IOException {
 		String username = (String) msg.get("username");
 		String secret = (String) msg.get("secret");
+		Queue q = controlInstance.getQueue();
+		if(q.isEmpty()) {
+			controlInstance.setQueue(false);
+		}
+		if(controlInstance.isQueue()) {
+			//add values to Queue
+			controlInstance.addQueue(msg);
+			for(int i = 0;i< q.size();i++) {
+				JSONObject queueMessage = (JSONObject) q.remove();
+				ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
+				while (listIterator.hasNext()) {
+					Connection connection1 = listIterator.next();
+					if (connection1.getName().equals(ControlUtil.SERVER) || (connection1.isLoggedInClient())) {
+						resultOutput.put("command", "ACTIVITY_BROADCAST");
+						resultOutput.put("activity", queueMessage.get("activity"));
+						connection1.writeMsg(resultOutput.toJSONString());
+					}
+				}
+			}
+			return false;
+		}
 		if (username.equals("anonymous")) {
 			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 			while (listIterator.hasNext()) {
@@ -474,7 +497,8 @@ public class ControlUtil {
 				try {
 					JSONObject output = new JSONObject();
 					output.put("command", "SERVER_BROKEN");
-					output.put("serverId", con.getConnectedServerId());
+					output.put("serverId", con.getConnectedServerId());				
+					controlInstance.setQueue(true);
 					connection.writeMsg(output.toJSONString());
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -487,6 +511,7 @@ public class ControlUtil {
 		if(serverList.containsKey((String) msg.get("serverId"))) {
 			serverList.remove(msg.get("serverId"));
 		}
+		
 		broadcastUtil(connection, msg);
 		return false;
 	}

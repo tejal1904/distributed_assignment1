@@ -4,7 +4,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -28,6 +30,24 @@ public class Control extends Thread {
 	protected static Control control = null;
 	private PrintWriter outwriter;
 	private int load;
+	private boolean isQueue = false;
+	private Queue<JSONObject> q = new LinkedList<>();
+
+	public boolean isQueue() {
+		return isQueue;
+	}
+
+	public void setQueue(boolean isQueue) {
+		this.isQueue = isQueue;
+	}
+	
+	public void addQueue(JSONObject msg) {
+		q.add(msg);
+	}
+	
+	public Queue getQueue() {
+		return q;
+	}
 
 	public static Control getInstance() {
 		if (control == null) {
@@ -214,5 +234,7 @@ public class Control extends Thread {
 	public void setParentServerId(String parentServerId) {
 		this.parentServerId = parentServerId;
 	}
+	
+	
 
 }
