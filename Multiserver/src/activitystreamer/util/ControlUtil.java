@@ -5,12 +5,13 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Queue;
-
+import java.util.LinkedList;
+import java.util.Set;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -482,15 +483,18 @@ public class ControlUtil {
 
 	@SuppressWarnings("unchecked")
 	public void sendConnectionLostMessage(Connection con) {
+		serverList.remove(con.getConnectedServerId());
 		if(con.isChild()) {
-			//Loop thru and establish new connection to its parent.
-			Socket newServer = getSocketDetails(controlInstance.getParentServerId());
-			try {
-				controlInstance.outgoingConnection(newServer);
-			} catch (IOException e) {
-				
-				e.printStackTrace();
-			}
+			//establish new connection to its parent.
+			Socket newServer = getSocketDetails(con.getConnectedServerId());
+			if(newServer != null) {
+				try {
+					controlInstance.outgoingConnection(newServer);
+				} catch (IOException e) {
+					
+					e.printStackTrace();
+				}
+			}			
 		}
 		for (Connection connection : controlInstance.getConnections()) {
 			if (connection.isOpen() && connection.getName().equals(ControlUtil.SERVER)) {
@@ -537,20 +541,52 @@ public class ControlUtil {
 		JSONObject serverDetails = serverList.get(serverId);
 		Socket newSocket = null;
 		String parentId = (String) serverDetails.get("parentId");
+		
 		if(parentId != null) {
 			try {
 				newSocket = new Socket((String) serverDetails.get("parentServerName"), (Integer) serverDetails.get("parentServerPort"));
 			} catch (UnknownHostException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
 				newSocket = getSocketDetails(parentId);
 				e.printStackTrace();
 			} 
-		}else {
+		} else {
 			//return some child or adjacent server
-			
+			if(serverList.size() > 0) {
+				Set serverListSet = new LinkedHashSet(serverList.values());
+				serverDetails = (JSONObject) serverListSet.stream().findFirst().get();
+				String firstServerId = (String) serverDetails.get("id");
+				boolean hasServerInConnectionList = hasServerInConnectionList(firstServerId);
+				if(Settings.getId() != firstServerId && hasServerInConnectionList) {
+					
+					try {
+						newSocket = new Socket((String) serverDetails.get("hostname"), (Integer) serverDetails.get("port"));
+					} catch (UnknownHostException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						newSocket = getSocketDetails(parentId);
+						e.printStackTrace();
+					} 
+					
+				} else {
+					//Do nothing
+				}
+			}				
 		}
 		return newSocket;
+	}
+
+	private boolean hasServerInConnectionList(String serverId) {
+		boolean hasServerInConnectionList = false;
+		ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
+		while (listIterator.hasNext()) {
+			Connection connection1 = listIterator.next();
+			if(connection1.getConnectedServerId() == serverId) {
+				hasServerInConnectionList = true;
+			}
+		}
+
+		return hasServerInConnectionList;
 	}
 }
