@@ -182,6 +182,7 @@ public class Control extends Thread {
 					output.put("parentServerName",Settings.getRemoteHostname());
 					output.put("parentServerPort", Settings.getRemotePort());
 					output.put("parentId", getParentServerId());
+//					System.out.println(output.toJSONString());
 					connection.writeMsg(output.toJSONString());
 				} catch (IOException e) {
 					e.printStackTrace();
