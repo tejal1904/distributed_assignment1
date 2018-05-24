@@ -316,6 +316,7 @@ public class ControlUtil {
 			}			
 			broadcastUtil(connection, msg);			
 		}
+		System.out.println("in server announce: "+serverList);
 		return false;
 	}
 
@@ -537,7 +538,7 @@ public class ControlUtil {
 		JSONObject serverDetails = serverList.get(serverId);
 		Socket newSocket = null;
 		String parentId = (serverDetails != null && (serverDetails.get("parentId") != null)) ? (String) serverDetails.get("parentId") : null;
-		
+		System.out.println("My server list: "+ serverList);
 		if(parentId != null) {
 			try {
 				System.out.println("Trying to connect to ....."+ (String) serverDetails.get("parentServerName"));
