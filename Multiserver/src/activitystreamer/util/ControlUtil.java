@@ -556,6 +556,7 @@ public class ControlUtil {
 				Set serverListSet = new LinkedHashSet(serverList.values());
 				serverDetails = (JSONObject) serverListSet.stream().findFirst().get();
 				String firstServerId = (String) serverDetails.get("id");
+				System.out.println("FIRST SERVER ID:"+firstServerId);
 				boolean hasServerInConnectionList = hasServerInConnectionList(firstServerId);
 				if(Settings.getId() != firstServerId && hasServerInConnectionList) {
 					
