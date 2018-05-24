@@ -4,6 +4,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -29,9 +30,10 @@ public class ControlUtil {
 	private static final String GLOBAL_CLIENTS = "GLOBAL_CLIENTS";
 	private static final String AUTHENTICATE_SUCCESS = "AUTHENTICATE_SUCCESS";
 	public static Map<String, Integer> lockAllowedCount = new HashMap<>();
-	public static Map<String, JSONObject> serverList = Collections.synchronizedMap(new LinkedHashMap());
 	public static Map<String,List<Connection>> serverClientList = new HashMap<>();
-
+	public Map<String, JSONObject> serverList = new HashMap<String, JSONObject>();
+	MapComparator mapComparator = new MapComparator(serverList);
+	public TreeMap<String, JSONObject> sortedServerList = new TreeMap<>(mapComparator);
 	JSONObject resultOutput;
 	JSONParser parser = new JSONParser();
 	Control controlInstance = Control.getInstance();
@@ -112,10 +114,13 @@ public class ControlUtil {
 		String info = processAuthenticate(connection, msg);
 		if (info.equals("SUCCESS")) {
 			connection.setName(ControlUtil.SERVER);
-			connection.setConnectedServerId((String) msg.get("id")); 
+			connection.setConnectedServerId((String) msg.get("id"));
+			controlInstance.setMyChildServerRank(controlInstance.getMyChildServerRank()+1);
 			resultOutput.put("command", "AUTHENTICATE_SUCCESS");
 			resultOutput.put("serverDetail", Settings.getId());
 			resultOutput.put("clientList",Control.getInstance().getGlobalRegisteredClients());
+			resultOutput.put("level", controlInstance.getLevel()+1);
+			resultOutput.put("rank", controlInstance.getMyChildServerRank());
 			connection.writeMsg(resultOutput.toJSONString());
 			return false;
 		} else if (info.equals("AUTHENTICATION_FAIL")) {
@@ -467,7 +472,7 @@ public class ControlUtil {
 
 	@SuppressWarnings("unchecked")
 	public void sendConnectionLostMessage(Connection con) {
-		serverList.remove(con.getConnectedServerId());
+		//serverList.remove(con.getConnectedServerId());
 		if(con.isChild()) {
 			//establish new connection to its parent.
 			Socket newServer = getSocketDetails(con.getConnectedServerId());
@@ -491,7 +496,7 @@ public class ControlUtil {
 				} catch (IOException e) {					
 					e.printStackTrace();
 				}
-			}			
+			}
 		}
 		for (Connection connection : controlInstance.getConnections()) {
 			if (connection.isOpen() && connection.getName().equals(ControlUtil.SERVER)) {
@@ -531,6 +536,8 @@ public class ControlUtil {
 		connection.setChild(true);
 		connection.setConnectedServerId((String) msg.get("serverDetail"));
 		controlInstance.setParentServerId((String) msg.get("serverDetail"));
+		controlInstance.setLevel((Integer) msg.get("level"));
+		controlInstance.setRank((Integer)msg.get("rank"));
 		return false;
 	}
 	
@@ -551,7 +558,43 @@ public class ControlUtil {
 				e.printStackTrace();
 			} 
 		} else {
-			//return some child or adjacent server
+
+			sortedServerList.putAll(serverList);
+			/*for(Map.Entry<String, JSONObject> entry:sortedServerList.entrySet()){
+				if(entry.getKey() != Settings.getId()){
+					break;
+				}else{
+					try {
+						newSocket = new Socket((String) entry.getValue().get("hostname"), (Integer) entry.getValue().get("port"));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}*/
+
+			Iterator<Map.Entry<String, JSONObject>> iterator = sortedServerList.entrySet().iterator();
+			while (iterator.hasNext()){
+				Map.Entry<String, JSONObject> entry = iterator.next();
+				JSONObject json = entry.getValue();
+				String key = entry.getKey();
+				if(key.equals(Settings.getId())){
+					//if entry in map is same as self then do nothing and break
+					break;
+				}else{
+					//else try connecting with server in list in order
+					try {
+						newSocket = new Socket((String) entry.getValue().get("hostname"), (Integer) entry.getValue().get("port"));
+					} catch (IOException e) {
+						e.printStackTrace();
+						//in case of exception just continue and connect to next server
+						continue;
+					}
+				}
+			}
+
+
+
+			/*//return some child or adjacent server
 			if(serverList.size() > 0) {
 				System.out.println("IN CHILD CONNECTION CASE***********");
 				Set serverListSet = new LinkedHashSet(serverList.values());
@@ -574,7 +617,7 @@ public class ControlUtil {
 				} else {
 					//Do nothing
 				}
-			}				
+			}	*/
 		}
 		return newSocket;
 	}
@@ -591,4 +634,6 @@ public class ControlUtil {
 
 		return hasServerInConnectionList;
 	}
+
+
 }

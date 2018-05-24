@@ -4,9 +4,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -30,8 +28,11 @@ public class Control extends Thread {
 	protected static Control control = null;
 	private PrintWriter outwriter;
 	private int load;
+	private int rank=0;
+	private int myChildServerRank = 0;
 	private boolean isQueue = false;
 	private Queue<JSONObject> q = new LinkedList<>();
+	private int level = 0;
 
 	public boolean isQueue() {
 		return isQueue;
@@ -47,6 +48,30 @@ public class Control extends Thread {
 	
 	public Queue getQueue() {
 		return q;
+	}
+
+	public int getLevel() {
+		return level;
+	}
+
+	public void setLevel(int level) {
+		this.level = level;
+	}
+
+	public int getRank() {
+		return rank;
+	}
+
+	public void setRank(int rank) {
+		this.rank = rank;
+	}
+
+	public int getMyChildServerRank() {
+		return myChildServerRank;
+	}
+
+	public void setMyChildServerRank(int myChildServerRank) {
+		this.myChildServerRank = myChildServerRank;
 	}
 
 	public static Control getInstance() {
@@ -121,8 +146,7 @@ public class Control extends Thread {
 	public synchronized Connection outgoingConnection(Socket s) throws IOException {
 		log.debug("outgoing connection: " + Settings.socketAddress(s));
 		Connection c = new Connection(s);
-		c.setName(Control.SERVER);		
-		
+		c.setName(Control.SERVER);
 		connections.add(c);
 		
 		DataOutputStream out = new DataOutputStream(s.getOutputStream());
@@ -182,6 +206,9 @@ public class Control extends Thread {
 					output.put("parentServerName",Settings.getRemoteHostname());
 					output.put("parentServerPort", Settings.getRemotePort());
 					output.put("parentId", getParentServerId());
+					output.put("level", getLevel());
+					output.put("rank", getRank());
+
 //					System.out.println(output.toJSONString());
 					connection.writeMsg(output.toJSONString());
 				} catch (IOException e) {

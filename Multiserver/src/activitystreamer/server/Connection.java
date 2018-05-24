@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Date;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -69,9 +70,9 @@ public class Connection extends Thread {
 			while (!term && (data = inreader.readLine()) != null) {
 				term = Control.getInstance().process(this, data);
 			}
-			if(this.getName().equals("SERVER")) {
+			/*if(this.getName().equals("SERVER")) {
 				ControlUtil.getInstance().sendConnectionLostMessage(this);
-			}
+			}*/
 			log.debug("connection closed to " + Settings.socketAddress(socket));
 			Control.getInstance().connectionClosed(this);
 			in.close();
