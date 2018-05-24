@@ -536,7 +536,7 @@ public class ControlUtil {
 	private Socket getSocketDetails(String serverId) {
 		JSONObject serverDetails = serverList.get(serverId);
 		Socket newSocket = null;
-		String parentId = (String) serverDetails.get("parentId");
+		String parentId = (serverDetails != null && (serverDetails.get("parentId") != null)) ? (String) serverDetails.get("parentId") : null;
 		
 		if(parentId != null) {
 			try {
