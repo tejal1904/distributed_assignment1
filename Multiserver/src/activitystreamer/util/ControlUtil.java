@@ -2,15 +2,9 @@ package activitystreamer.util;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Queue;
-import java.util.LinkedList;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -35,7 +29,7 @@ public class ControlUtil {
 	private static final String GLOBAL_CLIENTS = "GLOBAL_CLIENTS";
 	private static final String AUTHENTICATE_SUCCESS = "AUTHENTICATE_SUCCESS";
 	public static Map<String, Integer> lockAllowedCount = new HashMap<>();
-	public static Map<String, JSONObject> serverList = new HashMap<>();
+	public static Map<String, JSONObject> serverList = Collections.synchronizedMap(new LinkedHashMap());
 	public static Map<String,List<Connection>> serverClientList = new HashMap<>();
 
 	JSONObject resultOutput;
