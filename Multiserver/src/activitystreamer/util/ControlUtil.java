@@ -540,6 +540,8 @@ public class ControlUtil {
 		
 		if(parentId != null) {
 			try {
+				System.out.println("Trying to connect to ....."+ (String) serverDetails.get("parentServerName"));
+				System.out.println("SERVER LIST*************:"+ serverList);
 				newSocket = new Socket((String) serverDetails.get("parentServerName"), (Integer) serverDetails.get("parentServerPort"));
 			} catch (UnknownHostException e) {
 				e.printStackTrace();
@@ -550,6 +552,7 @@ public class ControlUtil {
 		} else {
 			//return some child or adjacent server
 			if(serverList.size() > 0) {
+				System.out.println("IN CHILD CONNECTION CASE***********");
 				Set serverListSet = new LinkedHashSet(serverList.values());
 				serverDetails = (JSONObject) serverListSet.stream().findFirst().get();
 				String firstServerId = (String) serverDetails.get("id");
@@ -557,6 +560,7 @@ public class ControlUtil {
 				if(Settings.getId() != firstServerId && hasServerInConnectionList) {
 					
 					try {
+						System.out.println("Child trying to connect to..........."+ (String) serverDetails.get("hostname"));
 						newSocket = new Socket((String) serverDetails.get("hostname"), (Integer) serverDetails.get("port"));
 					} catch (UnknownHostException e) {
 						e.printStackTrace();
