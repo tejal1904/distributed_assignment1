@@ -621,7 +621,6 @@ public class ControlUtil {
 				e.printStackTrace();
 			} catch (IOException e) {
 				newSocket = getSocketDetails(parentId);
-				e.printStackTrace();
 			} 
 		} else {
 			System.out.println("in else i.e parent id is null");
@@ -659,7 +658,6 @@ public class ControlUtil {
 						Settings.setRemotePort(((Long) entry.getValue().get("port")).intValue());
 						break;
 					} catch (IOException e) {
-						e.printStackTrace();
 						//in case of exception just continue and connect to next server
 						continue;
 					}
