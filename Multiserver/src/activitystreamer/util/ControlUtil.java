@@ -329,7 +329,7 @@ public class ControlUtil {
 				Map.Entry<String, JSONObject> entry = levelRankIterator.next();
 				if(controlInstance.getLevelRank().get(((Long) entry.getValue().get("level")).intValue()) == null){
 					controlInstance.getLevelRank().put(((Long) entry.getValue().get("level")).intValue(), ((Long) entry.getValue().get("rank")).intValue());
-				}else if(controlInstance.getLevelRank().get(((Long) entry.getValue().get("level")).intValue()) > ((Long) entry.getValue().get("rank")).intValue()){
+				}else if(controlInstance.getLevelRank().get(((Long) entry.getValue().get("level")).intValue()) < ((Long) entry.getValue().get("rank")).intValue()){
 					controlInstance.getLevelRank().replace(((Long) entry.getValue().get("level")).intValue(),((Long) entry.getValue().get("rank")).intValue());
 				}
 			}
