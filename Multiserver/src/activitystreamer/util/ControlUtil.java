@@ -114,7 +114,10 @@ public class ControlUtil {
 		String info = processAuthenticate(connection, msg);
 		if (info.equals("SUCCESS")) {
 			int templevel = controlInstance.getLevel()+1;
-			int temprank = controlInstance.getLevelRank().get(templevel);
+			int temprank = 0;
+			if(controlInstance.getLevelRank().get(templevel) != null){
+				temprank = controlInstance.getLevelRank().get(templevel);
+			}
 			sortedServerList.putAll(serverList);
 			connection.setName(ControlUtil.SERVER);
 			connection.setConnectedServerId((String) msg.get("id"));
