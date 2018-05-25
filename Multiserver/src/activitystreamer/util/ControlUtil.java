@@ -33,7 +33,7 @@ public class ControlUtil {
 	public static Map<String,List<Connection>> serverClientList = new HashMap<>();
 	public Map<String, JSONObject> serverList = new HashMap<String, JSONObject>();
 	MapComparator mapComparator = new MapComparator(serverList);
-	public TreeMap<String, JSONObject> sortedServerList = new TreeMap<>(mapComparator);
+	public ConcurrentSkipListMap<String, JSONObject> sortedServerList = new ConcurrentSkipListMap<>(mapComparator);
 	JSONObject resultOutput;
 	JSONParser parser = new JSONParser();
 	Control controlInstance = Control.getInstance();
@@ -113,14 +113,16 @@ public class ControlUtil {
 		String secret1 = (String) msg.get("secret");
 		String info = processAuthenticate(connection, msg);
 		if (info.equals("SUCCESS")) {
+			int templevel = controlInstance.getLevel()+1;
+			int temprank = controlInstance.getLevelRank().get(templevel);
+			sortedServerList.putAll(serverList);
 			connection.setName(ControlUtil.SERVER);
 			connection.setConnectedServerId((String) msg.get("id"));
-			controlInstance.setMyChildServerRank(controlInstance.getMyChildServerRank()+1);
 			resultOutput.put("command", "AUTHENTICATE_SUCCESS");
 			resultOutput.put("serverDetail", Settings.getId());
 			resultOutput.put("clientList",Control.getInstance().getGlobalRegisteredClients());
-			resultOutput.put("level", controlInstance.getLevel()+1);
-			resultOutput.put("rank", controlInstance.getMyChildServerRank());
+			resultOutput.put("level", templevel);
+			resultOutput.put("rank", temprank);
 			connection.writeMsg(resultOutput.toJSONString());
 			return false;
 		} else if (info.equals("AUTHENTICATION_FAIL")) {
@@ -318,7 +320,16 @@ public class ControlUtil {
 				if (!controlInstance.getGlobalRegisteredClients().containsKey(clientUsername)) {
 					controlInstance.addGlobalRegisteredClients(clientUsername,clientPassword);
 				}
-			}			
+			}
+			Iterator<Map.Entry<String, JSONObject>>  levelRankIterator = serverList.entrySet().iterator();
+			while (levelRankIterator.hasNext()){
+				Map.Entry<String, JSONObject> entry = levelRankIterator.next();
+				if(controlInstance.getLevelRank().get(entry.getValue().get("level")) > (Integer) entry.getValue().get("rank")){
+					controlInstance.getLevelRank().replace((Integer) entry.getValue().get("level"),(Integer) entry.getValue().get("rank"));
+				}
+			}
+
+
 			broadcastUtil(connection, msg);			
 		}
 		System.out.println("in server announce: "+serverList);

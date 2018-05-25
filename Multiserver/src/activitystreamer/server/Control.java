@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.logging.log4j.LogManager;
@@ -29,7 +30,7 @@ public class Control extends Thread {
 	private PrintWriter outwriter;
 	private int load;
 	private int rank=0;
-	private int myChildServerRank = 0;
+	private Map<Integer, Integer> levelRank;
 	private boolean isQueue = false;
 	private Queue<JSONObject> q = new LinkedList<>();
 	private int level = 0;
@@ -66,14 +67,6 @@ public class Control extends Thread {
 		this.rank = rank;
 	}
 
-	public int getMyChildServerRank() {
-		return myChildServerRank;
-	}
-
-	public void setMyChildServerRank(int myChildServerRank) {
-		this.myChildServerRank = myChildServerRank;
-	}
-
 	public static Control getInstance() {
 		if (control == null) {
 			control = new Control();
@@ -87,6 +80,7 @@ public class Control extends Thread {
 		registeredClients = new ConcurrentHashMap<>();
 		toBeRegisteredClients = new ConcurrentHashMap<>();
 		globalRegisteredClients = new ConcurrentHashMap<>();
+		levelRank = new ConcurrentHashMap<>();
 		// start a listener
 		try {
 			listener = new Listener();
@@ -262,7 +256,12 @@ public class Control extends Thread {
 	public void setParentServerId(String parentServerId) {
 		this.parentServerId = parentServerId;
 	}
-	
-	
 
+	public Map<Integer, Integer> getLevelRank() {
+		return levelRank;
+	}
+
+	public void setLevelRank(Map<Integer, Integer> levelRank) {
+		this.levelRank = levelRank;
+	}
 }
