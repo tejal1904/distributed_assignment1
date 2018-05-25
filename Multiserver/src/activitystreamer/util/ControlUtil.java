@@ -344,7 +344,7 @@ public class ControlUtil {
 
 	private boolean activityBroadcastUtil(Connection connection, JSONObject msg) {
 		try {
-			Queue<JSONObject> q = controlInstance.getQueue(); 
+//			Queue<JSONObject> q = controlInstance.getQueue(); 
 			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 			while (listIterator.hasNext()) {
 				Connection connection1 = listIterator.next();
@@ -353,11 +353,11 @@ public class ControlUtil {
 				if (!isSameConnection
 						&& ((!connection1.getName().equals(ControlUtil.SERVER) && connection1.isLoggedInClient()) || (connection1.getName().equals
 						(ControlUtil.SERVER)))) {
-					if(controlInstance.isQueue()) {
-						controlInstance.addQueue(msg);
-					} else {
+//					if(controlInstance.isQueue()) {
+//						controlInstance.addQueue(msg);
+//					} else {
 						connection1.writeMsg(msg.toJSONString());
-					}
+//					}
 				}
 			}
 
@@ -371,11 +371,11 @@ public class ControlUtil {
 	private boolean activityMessageUtil(Connection connection, JSONObject msg) throws IOException {
 		String username = (String) msg.get("username");
 		String secret = (String) msg.get("secret");
-		Queue<JSONObject> q = controlInstance.getQueue();		
-		if(controlInstance.isQueue()) {
-			//add values to Queue
-			controlInstance.addQueue(msg);			
-		}
+//		Queue<JSONObject> q = controlInstance.getQueue();		
+//		if(controlInstance.isQueue()) {
+//			//add values to Queue
+//			controlInstance.addQueue(msg);			
+//		}
 		if (username.equals("anonymous")) {
 			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 			while (listIterator.hasNext()) {
@@ -497,20 +497,20 @@ public class ControlUtil {
 					System.out.println("...connection success...going for outgoingconnection...");
 					controlInstance.outgoingConnection(newServer);
 					System.out.println("outgoing connection success");
-					controlInstance.setQueue(false);
-					Queue<JSONObject> q = controlInstance.getQueue();
-					for(int i = 0;i< q.size();i++) {
-						JSONObject queueMessage = (JSONObject) q.remove();
-						ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
-						while (listIterator.hasNext()) {
-							Connection connection1 = listIterator.next();
-							if (connection1.getName().equals(ControlUtil.SERVER) || (connection1.isLoggedInClient())) {
-								resultOutput.put("command", "ACTIVITY_BROADCAST");
-								resultOutput.put("activity", queueMessage.get("activity"));
-								connection1.writeMsg(resultOutput.toJSONString());
-							}
-						}
-					}
+//					controlInstance.setQueue(false);
+//					Queue<JSONObject> q = controlInstance.getQueue();
+//					for(int i = 0;i< q.size();i++) {
+//						JSONObject queueMessage = (JSONObject) q.remove();
+//						ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
+//						while (listIterator.hasNext()) {
+//							Connection connection1 = listIterator.next();
+//							if (connection1.getName().equals(ControlUtil.SERVER) || (connection1.isLoggedInClient())) {
+//								resultOutput.put("command", "ACTIVITY_BROADCAST");
+//								resultOutput.put("activity", queueMessage.get("activity"));
+//								connection1.writeMsg(resultOutput.toJSONString());
+//							}
+//						}
+//					}
 				} catch (IOException e) {					
 					e.printStackTrace();
 				}
@@ -522,7 +522,7 @@ public class ControlUtil {
 					JSONObject output = new JSONObject();
 					output.put("command", "SERVER_BROKEN");
 					output.put("serverId", con.getConnectedServerId());				
-					controlInstance.setQueue(true);
+//					controlInstance.setQueue(true);
 					connection.writeMsg(output.toJSONString());
 				} catch (IOException e) {
 					e.printStackTrace();
