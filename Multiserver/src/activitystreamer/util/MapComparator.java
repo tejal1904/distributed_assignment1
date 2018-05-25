@@ -21,7 +21,7 @@ public class MapComparator implements Comparator<String> {
         if(level1 > level2){
             return 1;
         }else if(level1 < level2){
-            return - 1;
+            return -1;
         }else if(level1 == level2){
             if(rank1 > rank2){
                 return 1;
