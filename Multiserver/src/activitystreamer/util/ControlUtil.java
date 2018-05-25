@@ -488,8 +488,7 @@ public class ControlUtil {
 	}
 
 	@SuppressWarnings("unchecked")
-	public void sendConnectionLostMessage(Connection con) {
-		serverList.remove(con.getConnectedServerId());
+	public void sendConnectionLostMessage(Connection con) {		
 		if(con.isChild()) {
 			//establish new connection to its parent.
 			Socket newServer = getSocketDetails(con.getConnectedServerId());
@@ -529,7 +528,8 @@ public class ControlUtil {
 					e.printStackTrace();
 				}
 			}
-		}		
+		}
+		serverList.remove(con.getConnectedServerId());
 	}
 	
 	private boolean broadcastServerBroken(JSONObject msg, Connection connection) {
