@@ -36,7 +36,7 @@ public class ControlUtil {
 	public static Map<String,List<Connection>> serverClientList = new HashMap<>();
 	public Map<String, JSONObject> serverList = new HashMap<String, JSONObject>();
 	MapComparator mapComparator = new MapComparator(serverList);
-	public ConcurrentSkipListMap<String, JSONObject> sortedServerList = new ConcurrentSkipListMap<>(mapComparator);
+	public TreeMap<String, JSONObject> sortedServerList = new TreeMap<>(mapComparator);
 	JSONObject resultOutput;
 	JSONParser parser = new JSONParser();
 	Control controlInstance = Control.getInstance();
@@ -345,7 +345,7 @@ public class ControlUtil {
 	}
 
 	private boolean serverAnnounce(JSONObject msg, Connection connection) throws IOException {
-		System.out.println(msg.get("clientList"));
+		//System.out.println(msg.get("clientList"));
 		if (null != msg.get("id")) {
 			serverList.put((String) msg.get("id"), msg);
 			Map<String,String> receivedClients = (Map<String,String>) msg.get("clientList");
@@ -370,7 +370,7 @@ public class ControlUtil {
 //			System.out.println("printing levelRank map: "+controlInstance.getLevelRank());
 			broadcastUtil(connection, msg);			
 		}
-		System.out.println("in server announce: "+serverList);
+		//System.out.println("in server announce: "+serverList);
 		return false;
 	}
 
