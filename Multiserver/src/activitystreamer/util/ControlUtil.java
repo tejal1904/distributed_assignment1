@@ -558,7 +558,7 @@ public class ControlUtil {
 				e.printStackTrace();
 			} 
 		} else {
-
+			System.out.println("in else i.e parent id is null");
 			sortedServerList.putAll(serverList);
 			/*for(Map.Entry<String, JSONObject> entry:sortedServerList.entrySet()){
 				if(entry.getKey() != Settings.getId()){
@@ -578,11 +578,13 @@ public class ControlUtil {
 				JSONObject json = entry.getValue();
 				String key = entry.getKey();
 				if(key.equals(Settings.getId())){
+					System.out.println("my entry in map");
 					//if entry in map is same as self then do nothing and break
 					break;
 				}else{
 					//else try connecting with server in list in order
 					try {
+						System.out.println("trying to connect to "+entry.getValue().get("hostname") + "  port: " + entry.getValue().get("port"));
 						newSocket = new Socket((String) entry.getValue().get("hostname"), (Integer) entry.getValue().get("port"));
 					} catch (IOException e) {
 						e.printStackTrace();
