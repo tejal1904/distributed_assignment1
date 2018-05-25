@@ -567,8 +567,8 @@ public class ControlUtil {
 		ownDetails.put("parentServerName",Settings.getRemoteHostname());
 		ownDetails.put("parentServerPort", Settings.getRemotePort());
 		ownDetails.put("parentId", controlInstance.getParentServerId());
-		ownDetails.put("level", controlInstance.getLevel());
-		ownDetails.put("rank", controlInstance.getRank());
+		ownDetails.put("level", Long.valueOf(controlInstance.getLevel()));
+		ownDetails.put("rank", Long.valueOf(controlInstance.getRank()));
 		serverList.put(Settings.getId(), ownDetails);
 		return false;
 	}
