@@ -202,7 +202,6 @@ public class Control extends Thread {
 					output.put("parentId", getParentServerId());
 					output.put("level", getLevel());
 					output.put("rank", getRank());
-
 //					System.out.println(output.toJSONString());
 					connection.writeMsg(output.toJSONString());
 				} catch (IOException e) {

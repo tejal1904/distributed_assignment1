@@ -10,6 +10,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import com.google.gson.JsonObject;
+
 import activitystreamer.server.Connection;
 import activitystreamer.server.Control;
 
@@ -539,6 +541,7 @@ public class ControlUtil {
 		return false;
 	}
 	
+	@SuppressWarnings("unchecked")
 	private boolean handleAuthSuccess(JSONObject msg, Connection connection) {
 		Map<String,String> receivedClients = (Map<String,String>) msg.get("clientList");
 		Iterator clientIterator = receivedClients.entrySet().iterator();
@@ -554,8 +557,19 @@ public class ControlUtil {
 		connection.setConnectedServerId((String) msg.get("serverDetail"));
 		controlInstance.setParentServerId((String) msg.get("serverDetail"));
 		controlInstance.setLevel(((Long) msg.get("level")).intValue());
-		controlInstance.setRank(((Long) msg.get("rank")).intValue());
-		serverList.put((String)msg.get("id"),msg);
+		controlInstance.setRank(((Long) msg.get("rank")).intValue());	
+		
+		JSONObject ownDetails = new JSONObject();		
+		ownDetails.put("hostname", Settings.getLocalHostname());
+		ownDetails.put("port", Settings.getLocalPort());
+		ownDetails.put("id", Settings.getId());
+		ownDetails.put("clientList", controlInstance.getRegisteredClients());
+		ownDetails.put("parentServerName",Settings.getRemoteHostname());
+		ownDetails.put("parentServerPort", Settings.getRemotePort());
+		ownDetails.put("parentId", controlInstance.getParentServerId());
+		ownDetails.put("level", controlInstance.getLevel());
+		ownDetails.put("rank", controlInstance.getRank());
+		serverList.put(Settings.getId(), ownDetails);
 		return false;
 	}
 	
