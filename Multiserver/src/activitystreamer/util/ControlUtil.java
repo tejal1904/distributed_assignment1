@@ -120,7 +120,7 @@ public class ControlUtil {
 		if (info.equals("SUCCESS")) {
 			int templevel = controlInstance.getLevel()+1;
 			int temprank = 0;
-			if(controlInstance.getLevelRank().containsKey(((Long)msg.get("level")).intValue())){
+			if(controlInstance.getLevelRank().containsKey(templevel)){
 				temprank = controlInstance.getLevelRank().get(templevel) + 1;
 			}
 			controlInstance.getLevelRank().put(templevel,  temprank);
