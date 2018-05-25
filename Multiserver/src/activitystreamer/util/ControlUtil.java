@@ -358,16 +358,6 @@ public class ControlUtil {
 					controlInstance.addGlobalRegisteredClients(clientUsername,clientPassword);
 				}
 			}
-//			Iterator<Map.Entry<String, JSONObject>>  levelRankIterator = serverList.entrySet().iterator();
-//			while (levelRankIterator.hasNext()){
-//				Map.Entry<String, JSONObject> entry = levelRankIterator.next();
-//				if(controlInstance.getLevelRank().get(((Long) entry.getValue().get("level")).intValue()) == null){
-//					controlInstance.getLevelRank().put(((Long) entry.getValue().get("level")).intValue(), ((Long) entry.getValue().get("rank")).intValue());
-//				}else if(controlInstance.getLevelRank().get(((Long) entry.getValue().get("level")).intValue()) < ((Long) entry.getValue().get("rank")).intValue()){
-//					controlInstance.getLevelRank().replace(((Long) entry.getValue().get("level")).intValue(),((Long) entry.getValue().get("rank")).intValue());
-//				}
-//			}
-//			System.out.println("printing levelRank map: "+controlInstance.getLevelRank());
 			broadcastUtil(connection, msg);			
 		}
 		//System.out.println("in server announce: "+serverList);
