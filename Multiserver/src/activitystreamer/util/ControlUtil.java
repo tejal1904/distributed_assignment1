@@ -494,6 +494,7 @@ public class ControlUtil {
 			Socket newServer = getSocketDetails(con.getConnectedServerId());
 			if(newServer != null) {
 				try {
+					System.out.println("...connection success...going for outgoingconnection...");
 					controlInstance.outgoingConnection(newServer);
 					controlInstance.setQueue(false);
 					Queue<JSONObject> q = controlInstance.getQueue();
