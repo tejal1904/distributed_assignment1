@@ -547,8 +547,9 @@ public class ControlUtil {
 		connection.setChild(true);
 		connection.setConnectedServerId((String) msg.get("serverDetail"));
 		controlInstance.setParentServerId((String) msg.get("serverDetail"));
-		controlInstance.setLevel((Integer) msg.get("level"));
-		controlInstance.setRank((Integer)msg.get("rank"));
+//		controlInstance.setLevel((Long)msg.get("level")).;
+		controlInstance.setLevel(((Long) msg.get("level")).intValue());
+		controlInstance.setLevel(((Long) msg.get("rank")).intValue());
 		return false;
 	}
 	
