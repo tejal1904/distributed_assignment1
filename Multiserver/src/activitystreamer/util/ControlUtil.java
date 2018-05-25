@@ -527,8 +527,7 @@ public class ControlUtil {
 					e.printStackTrace();
 				}
 			}
-		}
-		serverList.remove(con.getConnectedServerId());
+		}		
 	}
 	
 	private boolean broadcastServerBroken(JSONObject msg, Connection connection) {
@@ -562,6 +561,7 @@ public class ControlUtil {
 	private Socket getSocketDetails(String serverId) {
 		JSONObject serverDetails = serverList.get(serverId);
 		Socket newSocket = null;
+		serverList.remove(serverId);
 		String parentId = (serverDetails != null && (serverDetails.get("parentId") != null)) ? (String) serverDetails.get("parentId") : null;
 		System.out.println("My server list: "+ serverList);
 		if(parentId != null) {
