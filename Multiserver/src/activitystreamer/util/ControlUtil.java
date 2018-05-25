@@ -31,6 +31,7 @@ public class ControlUtil {
 	private static final String SERVER_BROKEN = "SERVER_BROKEN";
 	private static final String GLOBAL_CLIENTS = "GLOBAL_CLIENTS";
 	private static final String AUTHENTICATE_SUCCESS = "AUTHENTICATE_SUCCESS";
+	private static final String SERVER_JOIN = "SERVER_JOIN";
 	public static Map<String, Integer> lockAllowedCount = new HashMap<>();
 	public static Map<String,List<Connection>> serverClientList = new HashMap<>();
 	public Map<String, JSONObject> serverList = new HashMap<String, JSONObject>();
@@ -67,11 +68,13 @@ public class ControlUtil {
 				return registerClient(msg,connection);
 			case ControlUtil.AUTHENTICATION:
 				return authenticateServer(msg, connection);
+			case ControlUtil.SERVER_JOIN:
+				return handleServerJoin(msg,connection);
 			case ControlUtil.LOGIN:
 				return loginUtil(connection, msg);
 			case ControlUtil.LOGOUT:
 				connection.setLoggedInClient(false);
-				return true;
+				return true;				
 			case ControlUtil.ACTIVITY_MESSAGE:
 				return activityMessageUtil(connection, msg);
 			case ControlUtil.ACTIVITY_BROADCAST:
@@ -128,8 +131,22 @@ public class ControlUtil {
 			resultOutput.put("serverDetail", Settings.getId());
 			resultOutput.put("clientList",Control.getInstance().getGlobalRegisteredClients());
 			resultOutput.put("level", templevel);
-			resultOutput.put("rank", temprank);
+			resultOutput.put("rank", temprank);			
 			connection.writeMsg(resultOutput.toJSONString());
+			//sending Server join broadcast message
+			for (Connection conn : controlInstance.getConnections()) {
+				if (conn.isOpen() && conn.getName().equals(ControlUtil.SERVER)) {
+					try {
+						JSONObject output = new JSONObject();
+						output.put("command", "SERVER_JOIN");							
+						output.put("level",templevel);
+						output.put("rank", temprank);						
+						conn.writeMsg(output.toJSONString());
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
 			return false;
 		} else if (info.equals("AUTHENTICATION_FAIL")) {
 			resultOutput.put("command", info);
@@ -137,6 +154,18 @@ public class ControlUtil {
 			connection.writeMsg(resultOutput.toJSONString());
 			return true;
 		}
+		return false;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private boolean handleServerJoin(JSONObject msg, Connection connection) throws IOException {		
+		if(!controlInstance.getLevelRank().containsKey(((Long) msg.get("level")).intValue())){
+			controlInstance.getLevelRank().put(((Long) msg.get("level")).intValue(), ((Long) msg.get("rank")).intValue());
+		}else if(controlInstance.getLevelRank().get(((Long) msg.get("level")).intValue()) < ((Long) msg.get("rank")).intValue()){
+			controlInstance.getLevelRank().replace(((Long) msg.get("level")).intValue(),((Long) msg.get("rank")).intValue());
+		}
+		System.out.println("printing levelRank map: "+controlInstance.getLevelRank());	
+			
 		return false;
 	}
 
@@ -327,16 +356,16 @@ public class ControlUtil {
 					controlInstance.addGlobalRegisteredClients(clientUsername,clientPassword);
 				}
 			}
-			Iterator<Map.Entry<String, JSONObject>>  levelRankIterator = serverList.entrySet().iterator();
-			while (levelRankIterator.hasNext()){
-				Map.Entry<String, JSONObject> entry = levelRankIterator.next();
-				if(controlInstance.getLevelRank().get(((Long) entry.getValue().get("level")).intValue()) == null){
-					controlInstance.getLevelRank().put(((Long) entry.getValue().get("level")).intValue(), ((Long) entry.getValue().get("rank")).intValue());
-				}else if(controlInstance.getLevelRank().get(((Long) entry.getValue().get("level")).intValue()) < ((Long) entry.getValue().get("rank")).intValue()){
-					controlInstance.getLevelRank().replace(((Long) entry.getValue().get("level")).intValue(),((Long) entry.getValue().get("rank")).intValue());
-				}
-			}
-			System.out.println("printing levelRank map: "+controlInstance.getLevelRank());
+//			Iterator<Map.Entry<String, JSONObject>>  levelRankIterator = serverList.entrySet().iterator();
+//			while (levelRankIterator.hasNext()){
+//				Map.Entry<String, JSONObject> entry = levelRankIterator.next();
+//				if(controlInstance.getLevelRank().get(((Long) entry.getValue().get("level")).intValue()) == null){
+//					controlInstance.getLevelRank().put(((Long) entry.getValue().get("level")).intValue(), ((Long) entry.getValue().get("rank")).intValue());
+//				}else if(controlInstance.getLevelRank().get(((Long) entry.getValue().get("level")).intValue()) < ((Long) entry.getValue().get("rank")).intValue()){
+//					controlInstance.getLevelRank().replace(((Long) entry.getValue().get("level")).intValue(),((Long) entry.getValue().get("rank")).intValue());
+//				}
+//			}
+//			System.out.println("printing levelRank map: "+controlInstance.getLevelRank());
 			broadcastUtil(connection, msg);			
 		}
 		System.out.println("in server announce: "+serverList);
@@ -552,7 +581,7 @@ public class ControlUtil {
 			if (!controlInstance.getGlobalRegisteredClients().containsKey(clientUsername)) {
 				controlInstance.addGlobalRegisteredClients(clientUsername,clientPassword);
 			}
-		}
+		}		
 		connection.setChild(true);
 		connection.setConnectedServerId((String) msg.get("serverDetail"));
 		controlInstance.setParentServerId((String) msg.get("serverDetail"));
