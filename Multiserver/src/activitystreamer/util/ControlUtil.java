@@ -578,7 +578,7 @@ public class ControlUtil {
 		} else {
 			System.out.println("in else i.e parent id is null");
 			sortedServerList.putAll(serverList);
-
+			System.out.println("sorted map: "+sortedServerList);
 			Iterator<Map.Entry<String, JSONObject>> iterator = sortedServerList.entrySet().iterator();
 			while (iterator.hasNext()){
 				Map.Entry<String, JSONObject> entry = iterator.next();
