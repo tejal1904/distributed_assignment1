@@ -120,7 +120,6 @@ public class ControlUtil {
 			}
 			System.out.println("in authenticate success for: "+msg.get("id"));
 			System.out.println("giving level:"+templevel + " rank: "+temprank);
-			sortedServerList.putAll(serverList);
 			connection.setName(ControlUtil.SERVER);
 			connection.setConnectedServerId((String) msg.get("id"));
 			resultOutput.put("command", "AUTHENTICATE_SUCCESS");
