@@ -34,9 +34,9 @@ public class ControlUtil {
 	private static final String SERVER_JOIN = "SERVER_JOIN";
 	public static Map<String, Integer> lockAllowedCount = new HashMap<>();
 	public static Map<String,List<Connection>> serverClientList = new HashMap<>();
-	public Map<String, JSONObject> serverList = new HashMap<String, JSONObject>();
+	public Map<String, JSONObject> serverList = new ConcurrentHashMap<String, JSONObject>();
 	MapComparator mapComparator = new MapComparator(serverList);
-	public TreeMap<String, JSONObject> sortedServerList = new TreeMap<>(mapComparator);
+	public Map<String, JSONObject> sortedServerList = new ConcurrentSkipListMap<>(mapComparator);
 	JSONObject resultOutput;
 	JSONParser parser = new JSONParser();
 	Control controlInstance = Control.getInstance();
@@ -665,7 +665,6 @@ public class ControlUtil {
 					}
 				}
 			}
-
 
 		}
 		return newSocket;
