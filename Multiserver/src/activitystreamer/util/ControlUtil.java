@@ -116,7 +116,7 @@ public class ControlUtil {
 			int templevel = controlInstance.getLevel()+1;
 			int temprank = 0;
 			if(controlInstance.getLevelRank().get(templevel) != null){
-				temprank = controlInstance.getLevelRank().get(templevel);
+				temprank = controlInstance.getLevelRank().get(templevel) + 1;
 			}
 			System.out.println("in authenticate success for: "+msg.get("id"));
 			System.out.println("giving level:"+templevel + " rank: "+temprank);
