@@ -586,6 +586,7 @@ public class ControlUtil {
 					try {
 						System.out.println("trying to connect to "+entry.getValue().get("hostname") + "  port: " + entry.getValue().get("port"));
 						newSocket = new Socket((String) entry.getValue().get("hostname"), (Integer) entry.getValue().get("port"));
+						break;
 					} catch (IOException e) {
 						e.printStackTrace();
 						//in case of exception just continue and connect to next server
