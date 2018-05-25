@@ -641,6 +641,8 @@ public class ControlUtil {
 					try {
 						System.out.println("trying to connect to "+entry.getValue().get("hostname") + "  port: " + entry.getValue().get("port"));
 						newSocket = new Socket((String) entry.getValue().get("hostname"), ((Long) entry.getValue().get("port")).intValue());
+						Settings.setRemoteHostname((String) entry.getValue().get("hostname"));
+						Settings.setRemotePort(((Long) entry.getValue().get("port")).intValue());
 						break;
 					} catch (IOException e) {
 						e.printStackTrace();
