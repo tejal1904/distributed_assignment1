@@ -119,7 +119,7 @@ public class ControlUtil {
 				temprank = controlInstance.getLevelRank().get(templevel);
 			}
 			System.out.println("in authenticate success for: "+msg.get("id"));
-			System.out.println("giving level and rank: "+templevel + " rank: "+temprank);
+			System.out.println("giving level:"+templevel + " rank: "+temprank);
 			sortedServerList.putAll(serverList);
 			connection.setName(ControlUtil.SERVER);
 			connection.setConnectedServerId((String) msg.get("id"));
@@ -555,9 +555,8 @@ public class ControlUtil {
 		connection.setChild(true);
 		connection.setConnectedServerId((String) msg.get("serverDetail"));
 		controlInstance.setParentServerId((String) msg.get("serverDetail"));
-//		controlInstance.setLevel((Long)msg.get("level")).;
 		controlInstance.setLevel(((Long) msg.get("level")).intValue());
-		controlInstance.setLevel(((Long) msg.get("rank")).intValue());
+		controlInstance.setRank(((Long) msg.get("rank")).intValue());
 		return false;
 	}
 	
