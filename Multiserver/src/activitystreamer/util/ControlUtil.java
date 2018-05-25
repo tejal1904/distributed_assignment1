@@ -567,7 +567,7 @@ public class ControlUtil {
 			try {
 				System.out.println("Trying to connect to ....."+ (String) serverDetails.get("parentServerName"));
 				System.out.println("SERVER LIST*************:"+ serverList);
-				newSocket = new Socket((String) serverDetails.get("parentServerName"), (Integer) serverDetails.get("parentServerPort"));
+				newSocket = new Socket((String) serverDetails.get("parentServerName"), ((Long) serverDetails.get("parentServerPort")).intValue());
 			} catch (UnknownHostException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
@@ -577,17 +577,6 @@ public class ControlUtil {
 		} else {
 			System.out.println("in else i.e parent id is null");
 			sortedServerList.putAll(serverList);
-			/*for(Map.Entry<String, JSONObject> entry:sortedServerList.entrySet()){
-				if(entry.getKey() != Settings.getId()){
-					break;
-				}else{
-					try {
-						newSocket = new Socket((String) entry.getValue().get("hostname"), (Integer) entry.getValue().get("port"));
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-			}*/
 
 			Iterator<Map.Entry<String, JSONObject>> iterator = sortedServerList.entrySet().iterator();
 			while (iterator.hasNext()){
@@ -602,7 +591,7 @@ public class ControlUtil {
 					//else try connecting with server in list in order
 					try {
 						System.out.println("trying to connect to "+entry.getValue().get("hostname") + "  port: " + entry.getValue().get("port"));
-						newSocket = new Socket((String) entry.getValue().get("hostname"), (Integer) entry.getValue().get("port"));
+						newSocket = new Socket((String) entry.getValue().get("hostname"), ((Long) entry.getValue().get("port")).intValue());
 						break;
 					} catch (IOException e) {
 						e.printStackTrace();
@@ -613,47 +602,8 @@ public class ControlUtil {
 			}
 
 
-
-			/*//return some child or adjacent server
-			if(serverList.size() > 0) {
-				System.out.println("IN CHILD CONNECTION CASE***********");
-				Set serverListSet = new LinkedHashSet(serverList.values());
-				serverDetails = (JSONObject) serverListSet.stream().findFirst().get();
-				String firstServerId = (String) serverDetails.get("id");
-				System.out.println("FIRST SERVER ID:"+firstServerId);
-				boolean hasServerInConnectionList = hasServerInConnectionList(firstServerId);
-				if(Settings.getId() != firstServerId && hasServerInConnectionList) {
-					
-					try {
-						System.out.println("Child trying to connect to..........."+ (String) serverDetails.get("hostname"));
-						newSocket = new Socket((String) serverDetails.get("hostname"), (Integer) serverDetails.get("port"));
-					} catch (UnknownHostException e) {
-						e.printStackTrace();
-					} catch (IOException e) {
-						newSocket = getSocketDetails(parentId);
-						e.printStackTrace();
-					} 
-					
-				} else {
-					//Do nothing
-				}
-			}	*/
 		}
 		return newSocket;
 	}
-
-	private boolean hasServerInConnectionList(String serverId) {
-		boolean hasServerInConnectionList = false;
-		ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
-		while (listIterator.hasNext()) {
-			Connection connection1 = listIterator.next();
-			if(connection1.getConnectedServerId() == serverId) {
-				hasServerInConnectionList = true;
-			}
-		}
-
-		return hasServerInConnectionList;
-	}
-
 
 }
