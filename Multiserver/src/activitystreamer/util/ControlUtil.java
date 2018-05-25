@@ -118,6 +118,8 @@ public class ControlUtil {
 			if(controlInstance.getLevelRank().get(templevel) != null){
 				temprank = controlInstance.getLevelRank().get(templevel);
 			}
+			System.out.println("in authenticate success for: "+msg.get("id"));
+			System.out.println("giving level and rank: "+templevel + " rank: "+temprank);
 			sortedServerList.putAll(serverList);
 			connection.setName(ControlUtil.SERVER);
 			connection.setConnectedServerId((String) msg.get("id"));
@@ -333,8 +335,7 @@ public class ControlUtil {
 					controlInstance.getLevelRank().replace(((Long) entry.getValue().get("level")).intValue(),((Long) entry.getValue().get("rank")).intValue());
 				}
 			}
-
-
+			System.out.println("printing levelRank map: "+controlInstance.getLevelRank());
 			broadcastUtil(connection, msg);			
 		}
 		System.out.println("in server announce: "+serverList);
@@ -496,6 +497,7 @@ public class ControlUtil {
 				try {
 					System.out.println("...connection success...going for outgoingconnection...");
 					controlInstance.outgoingConnection(newServer);
+					System.out.println("outgoing connection success");
 					controlInstance.setQueue(false);
 					Queue<JSONObject> q = controlInstance.getQueue();
 					for(int i = 0;i< q.size();i++) {
