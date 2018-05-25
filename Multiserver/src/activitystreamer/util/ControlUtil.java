@@ -555,6 +555,7 @@ public class ControlUtil {
 		controlInstance.setParentServerId((String) msg.get("serverDetail"));
 		controlInstance.setLevel(((Long) msg.get("level")).intValue());
 		controlInstance.setRank(((Long) msg.get("rank")).intValue());
+		serverList.put((String)msg.get("id"),msg);
 		return false;
 	}
 	
