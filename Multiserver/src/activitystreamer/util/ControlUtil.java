@@ -327,10 +327,10 @@ public class ControlUtil {
 			Iterator<Map.Entry<String, JSONObject>>  levelRankIterator = serverList.entrySet().iterator();
 			while (levelRankIterator.hasNext()){
 				Map.Entry<String, JSONObject> entry = levelRankIterator.next();
-				if(controlInstance.getLevelRank().get((Integer) entry.getValue().get("level")) == null){
-					controlInstance.getLevelRank().put((Integer) entry.getValue().get("level"), (Integer) entry.getValue().get("rank"));
-				}else if(controlInstance.getLevelRank().get(entry.getValue().get("level")) > (Integer) entry.getValue().get("rank")){
-					controlInstance.getLevelRank().replace((Integer) entry.getValue().get("level"),(Integer) entry.getValue().get("rank"));
+				if(controlInstance.getLevelRank().get(((Long) entry.getValue().get("level")).intValue()) == null){
+					controlInstance.getLevelRank().put(((Long) entry.getValue().get("level")).intValue(), ((Long) entry.getValue().get("rank")).intValue());
+				}else if(controlInstance.getLevelRank().get(((Long) entry.getValue().get("level")).intValue()) > ((Long) entry.getValue().get("rank")).intValue()){
+					controlInstance.getLevelRank().replace(((Long) entry.getValue().get("level")).intValue(),((Long) entry.getValue().get("rank")).intValue());
 				}
 			}
 
