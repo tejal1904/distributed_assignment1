@@ -120,11 +120,11 @@ public class ControlUtil {
 		if (info.equals("SUCCESS")) {
 			int templevel = controlInstance.getLevel()+1;
 			int temprank = 0;
-			if(controlInstance.getLevelRank().get(templevel) != null){
+			if(controlInstance.getLevelRank().containsKey(((Long)msg.get("level")).intValue())){
 				temprank = controlInstance.getLevelRank().get(templevel) + 1;
-			} else {
-				controlInstance.getLevelRank().put(templevel,  temprank);
 			}
+			controlInstance.getLevelRank().put(templevel,  temprank);
+
 			System.out.println("in authenticate success for: "+msg.get("id"));
 			System.out.println("giving level:"+templevel + " rank: "+temprank);
 			connection.setName(ControlUtil.SERVER);
