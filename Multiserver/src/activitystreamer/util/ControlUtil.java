@@ -433,7 +433,7 @@ public class ControlUtil {
 			Iterator<String> stringIterator = serverList.keySet().iterator();
 			while (stringIterator.hasNext()) {
 				String object = stringIterator.next();
-				if (null != object) {
+				if (null != object && object != Settings.getId()) {
 					if (controlInstance.getLoad() >= ((Long) serverList.get(object).get("load")).intValue() + 2) {
 						resultOutput = new JSONObject();
 						resultOutput.put("command", "REDIRECT");
@@ -559,7 +559,7 @@ public class ControlUtil {
 		controlInstance.setLevel(((Long) msg.get("level")).intValue());
 		controlInstance.setRank(((Long) msg.get("rank")).intValue());	
 		
-		JSONObject ownDetails = new JSONObject();		
+		JSONObject ownDetails = new JSONObject();
 		ownDetails.put("hostname", Settings.getLocalHostname());
 		ownDetails.put("port", Settings.getLocalPort());
 		ownDetails.put("id", Settings.getId());
