@@ -634,6 +634,19 @@ public class ControlUtil {
 				String key = entry.getKey();
 				if(key.equals(Settings.getId())){
 					System.out.println("my entry in map");
+					
+					//Update self details
+					Settings.setRemoteHostname(null);
+					Settings.setRemotePort(0);
+					controlInstance.setParentServerId(null);
+					
+					//Update self details in the server list
+					JSONObject selfDetails = serverList.get(Settings.getId());
+					selfDetails.put("parentServerName",Settings.getRemoteHostname());
+					selfDetails.put("parentServerPort", Settings.getRemotePort());
+					selfDetails.put("parentId", controlInstance.getParentServerId());
+					serverList.put(Settings.getId(), selfDetails);
+					
 					//if entry in map is same as self then do nothing and break
 					break;
 				}else{
