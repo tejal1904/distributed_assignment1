@@ -489,7 +489,7 @@ public class ControlUtil {
 
 	@SuppressWarnings("unchecked")
 	public void sendConnectionLostMessage(Connection con) {
-		//serverList.remove(con.getConnectedServerId());
+		serverList.remove(con.getConnectedServerId());
 		if(con.isChild()) {
 			//establish new connection to its parent.
 			Socket newServer = getSocketDetails(con.getConnectedServerId());
