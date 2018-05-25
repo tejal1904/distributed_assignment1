@@ -615,6 +615,8 @@ public class ControlUtil {
 				System.out.println("Trying to connect to ....."+ (String) serverDetails.get("parentServerName"));
 				System.out.println("SERVER LIST*************:"+ serverList);
 				newSocket = new Socket((String) serverDetails.get("parentServerName"), ((Long) serverDetails.get("parentServerPort")).intValue());
+				Settings.setRemoteHostname((String) serverDetails.get("parentServerName"));
+				Settings.setRemotePort(((Long) serverDetails.get("parentServerPort")).intValue());
 			} catch (UnknownHostException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
