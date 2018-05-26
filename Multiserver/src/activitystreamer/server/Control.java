@@ -247,18 +247,21 @@ public class Control extends Thread {
 			while (messagePOJOIterator.hasNext()){
 				MessagePOJO pojo = messagePOJOIterator.next();
 				Queue<JSONObject> messages = pojo.getMessageQueue();
-				int count = ((Long)messages.peek().get("count")).intValue();
-				if(count < 4){
-					messages.peek().put("count",count+1);
-					JSONObject sendbroadcast = new JSONObject();
-					sendbroadcast.put("command", "ACTIVITY_BROADCAST");
-					sendbroadcast.put("activity", messages.peek());
-					try {
-						pojo.getToConnection().writeMsg(sendbroadcast.toJSONString());
-					} catch (IOException e) {
-						e.printStackTrace();
+				if(messages.size() > 0){
+					int count = ((Long)messages.peek().get("count")).intValue();
+					if(count < 4){
+						messages.peek().put("count",count+1);
+						JSONObject sendbroadcast = new JSONObject();
+						sendbroadcast.put("command", "ACTIVITY_BROADCAST");
+						sendbroadcast.put("activity", messages.peek());
+						try {
+							pojo.getToConnection().writeMsg(sendbroadcast.toJSONString());
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
 					}
 				}
+
 			}
 		}
 
