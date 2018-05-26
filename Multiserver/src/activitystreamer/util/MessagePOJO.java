@@ -7,7 +7,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 public class MessagePOJO {
-    private Queue<JSONObject> messageQueue;
+    private Queue<JSONObject> messageQueue = new LinkedList<>();
     private Connection toConnection;
     private String fromServerId;
     private int count = 0;
