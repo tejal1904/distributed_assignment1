@@ -210,6 +210,7 @@ public class Control extends Thread {
 					JSONObject sendQueueValues = new JSONObject();
 					sendQueueValues.put("command", "MESSAGE_STATUS");
 					sendQueueValues.put("queue", ControlUtil.getInstance().localMessageQueueList);
+					connection.writeMsg(sendQueueValues.toJSONString());
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
