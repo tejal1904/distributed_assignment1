@@ -8,8 +8,8 @@ import java.util.Queue;
 
 public class MessagePOJO {
     private Queue<JSONObject> messageQueue;
-    Connection toConnection;
-    String fromServerId;
+    private Connection toConnection;
+    private String fromServerId;
 
     public Queue<JSONObject> getMessageQueue() {
         return messageQueue;

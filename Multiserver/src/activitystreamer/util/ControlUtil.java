@@ -122,15 +122,46 @@ public class ControlUtil {
 			//code for message starts
 			/*
 			* check if msg had failureServer command that means its failure case
-			* then check global message list for toConnectedServer connection object and if present then
-			* take that global messagequeue and add local queue in it and replace local queue with this
+			* then check globalMessageList for toConnectedServer connection object and if present then
+			* take that messagequeue from globalMessageList and add local queue in it and replace local queue with this
 			* else
-			* create a new pojo with new queue
+			* create a new messagePojo with new queue
 			*
 			* */
-
-
+			boolean sendFailureServer = false;
+			if(msg.get("failureServerId") != null){
+				Queue<JSONObject> queue = null;
+				String failureServerId = (String) msg.get("failureServerId");
+				sendFailureServer = true;
+				if(localMessageList.size() > 0){
+					for(MessagePOJO pojo:localMessageList){
+						if(pojo.getToConnection().getConnectedServerId() == failureServerId){
+							queue = pojo.getMessageQueue();
+						}
+					}
+				}
+				Queue<JSONObject> messageQueue = new LinkedList<>();
+				if(globalMessageList.size() > 0){
+					for(MessagePOJO messagePOJO:globalMessageList){
+						if(messagePOJO.getToConnection().equals(connection) && messagePOJO.getFromServerId().equals(failureServerId)){
+							messageQueue.addAll(messagePOJO.getMessageQueue());
+							messageQueue.addAll(queue);
+						}
+					}
+				}
+				MessagePOJO messagePOJO = new MessagePOJO();
+				messagePOJO.setFromServerId(Settings.getId());
+				messagePOJO.setToConnection(connection);
+				messagePOJO.setMessageQueue(messageQueue);
+				localMessageList.add(messagePOJO);
+			}else{
+				MessagePOJO messagePOJO = new MessagePOJO();
+				messagePOJO.setFromServerId(Settings.getId());
+				messagePOJO.setToConnection(connection);
+				localMessageList.add(messagePOJO);
+			}
 			//code for messaging ends
+
 			int templevel = controlInstance.getLevel()+1;
 			int temprank = 0;
 			if(controlInstance.getLevelRank().containsKey(templevel)){
@@ -145,7 +176,10 @@ public class ControlUtil {
 			resultOutput.put("serverDetail", Settings.getId());
 			resultOutput.put("clientList",Control.getInstance().getGlobalRegisteredClients());
 			resultOutput.put("level", templevel);
-			resultOutput.put("rank", temprank);			
+			resultOutput.put("rank", temprank);
+			if(sendFailureServer) {
+				resultOutput.put("failureServerId", msg.get("failureServerId"));
+			}
 			connection.writeMsg(resultOutput.toJSONString());
 			//sending Server join broadcast message
 			for (Connection conn : controlInstance.getConnections()) {
@@ -577,6 +611,40 @@ public class ControlUtil {
 	
 	@SuppressWarnings("unchecked")
 	private boolean handleAuthSuccess(JSONObject msg, Connection connection) {
+		//code for messaging starts
+		/*
+		* check if msg has failureServerId
+		* if yes
+		* fetch toConnectedServer.getServerid == failuerServerId then get queue from localMessageList
+		* and
+		* else
+		* create new MessagePojo object and add in localMessageList
+		* */
+		if(msg.get("failureServerId") != null){
+			Queue<JSONObject> failurequeue = null;
+			Queue<JSONObject> serverqueue = null;
+			String failureServerId = (String) msg.get("failureServerId");
+			if(localMessageList.size() > 0){
+				for(MessagePOJO pojo:localMessageList){
+					if(pojo.getToConnection().getConnectedServerId() == failureServerId){
+						failurequeue = pojo.getMessageQueue();
+					}
+				}
+			}
+			MessagePOJO messagePOJO = new MessagePOJO();
+			messagePOJO.setFromServerId(Settings.getId());
+			messagePOJO.setToConnection(connection);
+			messagePOJO.setMessageQueue(failurequeue);
+			localMessageList.add(messagePOJO);
+		}else{
+			MessagePOJO messagePOJO = new MessagePOJO();
+			messagePOJO.setFromServerId(Settings.getId());
+			messagePOJO.setToConnection(connection);
+			localMessageList.add(messagePOJO);
+		}
+
+
+		//code for messaging ends
 		Map<String,String> receivedClients = (Map<String,String>) msg.get("clientList");
 		Iterator clientIterator = receivedClients.entrySet().iterator();
 		while (clientIterator.hasNext()) {
