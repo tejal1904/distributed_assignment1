@@ -5,6 +5,7 @@ import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -33,7 +34,6 @@ public class ControlUtil {
 	private static final String AUTHENTICATE_SUCCESS = "AUTHENTICATE_SUCCESS";
 	private static final String SERVER_JOIN = "SERVER_JOIN";
 	public static Map<String, Integer> lockAllowedCount = new HashMap<>();
-	public static Map<String,List<Connection>> serverClientList = new HashMap<>();
 	public Map<String, JSONObject> serverList = new ConcurrentHashMap<String, JSONObject>();
 	MapComparator mapComparator = new MapComparator(serverList);
 	public Map<String, JSONObject> sortedServerList = new ConcurrentSkipListMap<>(mapComparator);
@@ -124,7 +124,6 @@ public class ControlUtil {
 				temprank = controlInstance.getLevelRank().get(templevel) + 1;
 			}
 			controlInstance.getLevelRank().put(templevel,  temprank);
-
 			System.out.println("in authenticate success for: "+msg.get("id"));
 			System.out.println("giving level:"+templevel + " rank: "+temprank);
 			connection.setName(ControlUtil.SERVER);
@@ -402,6 +401,7 @@ public class ControlUtil {
 			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 			while (listIterator.hasNext()) {
 				Connection connection1 = listIterator.next();
+
 				if (connection1.getName().equals(ControlUtil.SERVER) || (connection1.isLoggedInClient())) {
 					resultOutput.put("command", "ACTIVITY_BROADCAST");
 					resultOutput.put("activity", msg.get("activity"));
