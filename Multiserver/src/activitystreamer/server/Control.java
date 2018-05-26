@@ -190,6 +190,12 @@ public class Control extends Thread {
 				load++;
 			}
 		}
+		Map<String,Queue<JSONObject>> tempQueueMap = new ConcurrentHashMap<String, Queue<JSONObject>>();
+		for(Map.Entry<Connection, Queue<JSONObject>> entry:ControlUtil.getInstance().localMessageQueueList.entrySet()){
+			tempQueueMap.put(entry.getKey().getConnectedServerId(), entry.getValue());
+		}
+
+
 		for (Connection connection : Control.connections) {
 			if (connection.isOpen() && connection.getName().equals(Control.SERVER)) {
 				try {
@@ -209,7 +215,8 @@ public class Control extends Thread {
 					
 					JSONObject sendQueueValues = new JSONObject();
 					sendQueueValues.put("command", "MESSAGE_STATUS");
-					sendQueueValues.put("queue", ControlUtil.getInstance().localMessageQueueList);
+
+					sendQueueValues.put("queue", tempQueueMap);
 					connection.writeMsg(sendQueueValues.toJSONString());
 				} catch (IOException e) {
 					e.printStackTrace();

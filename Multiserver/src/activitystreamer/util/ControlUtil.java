@@ -41,7 +41,7 @@ public class ControlUtil {
 	MapComparator mapComparator = new MapComparator(serverList);
 	public Map<String, JSONObject> sortedServerList = new ConcurrentSkipListMap<>(mapComparator);
 	public Map<Connection, Queue<JSONObject>> localMessageQueueList = new ConcurrentHashMap<Connection, Queue<JSONObject>>();
-	public Map<String, Map<Connection, Queue<JSONObject>>> globalMessageQueueList = new ConcurrentHashMap<String, Map<Connection, Queue<JSONObject>>>();
+	public Map<String, Map<String, Queue<JSONObject>>> globalMessageQueueList = new ConcurrentHashMap<String, Map<String, Queue<JSONObject>>>();
 	JSONObject resultOutput;
 	JSONParser parser = new JSONParser();
 	Control controlInstance = Control.getInstance();
@@ -118,7 +118,7 @@ public class ControlUtil {
 
     @SuppressWarnings("unchecked")
 	private boolean updateGlobalMessages(JSONObject msg, Connection connection) throws IOException {
-        globalMessageQueueList.put(connection.getConnectedServerId(),  (Map<Connection,Queue<JSONObject>>) msg.get("queue"));
+        globalMessageQueueList.put(connection.getConnectedServerId(),  (Map<String,Queue<JSONObject>>) msg.get("queue"));
         return false;
     }
 
@@ -149,7 +149,7 @@ public class ControlUtil {
 						serverQueue = entry.getValue();
 					}				
 				}
-				Map<Connection, Queue<JSONObject>> globalListofFailedServer = globalMessageQueueList.get(failureServerId);
+				//Map<Connection, Queue<JSONObject>> globalListofFailedServer = globalMessageQueueList.get(failureServerId);
 				Iterator<Map.Entry<Connection, Queue<JSONObject>>> iterator1 = localMessageQueueList.entrySet().iterator();
 				while (iterator1.hasNext()) {
 					Map.Entry<Connection, Queue<JSONObject>> entry = iterator1.next();
@@ -280,10 +280,10 @@ public class ControlUtil {
 
 	private boolean activityBroadcastUtil(Connection connection, JSONObject msg) {
 		try {
-			JSONObject sendAcknowledgment = new JSONObject();
+			/*JSONObject sendAcknowledgment = new JSONObject();
 			sendAcknowledgment.put("command", "ACKNOWLEDGMENT");
 			sendAcknowledgment.put("fromServer",Settings.getId());
-			connection.writeMsg(sendAcknowledgment.toJSONString());
+			connection.writeMsg(sendAcknowledgment.toJSONString());*/
 
 			JSONObject activity = (JSONObject) msg.get("activity");
 
@@ -462,13 +462,13 @@ public class ControlUtil {
 			//When it is a parent and one of it's child has failed
 			//check if it is the only connected server (ie the crashed server is the leaf node),
 			//then get its messages and add it to all the connection's queues if not empty, else add and broadcast
-			Map<Connection, Queue<JSONObject>> failedGlobalQueueList = globalMessageQueueList.get(failedServerId);
+			Map<String, Queue<JSONObject>> failedGlobalQueueList = globalMessageQueueList.get(failedServerId);
 			Queue<JSONObject> messageQueue = new ConcurrentLinkedQueue<>();
 			if(failedGlobalQueueList != null && failedGlobalQueueList.size() == 1) { //To make sure it does not have any other child
-				Iterator<Map.Entry<Connection, Queue<JSONObject>>> iterator = failedGlobalQueueList.entrySet().iterator();
+				Iterator<Map.Entry<String, Queue<JSONObject>>> iterator = failedGlobalQueueList.entrySet().iterator();
 				while (iterator.hasNext()) {
-					Map.Entry<Connection, Queue<JSONObject>> entry = iterator.next();
-					if(((Connection)entry.getKey()).getConnectedServerId().equals(Settings.getId())) {
+					Map.Entry<String, Queue<JSONObject>> entry = iterator.next();
+					if(entry.getKey().equals(Settings.getId())) {
 						messageQueue = entry.getValue();
 					}				
 				}
