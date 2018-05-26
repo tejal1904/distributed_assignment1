@@ -461,7 +461,7 @@ public class ControlUtil {
 					for(MessagePOJO message:localMessageList) {
 						if(message.getToConnection().equals(connection1)) {
 							Queue<JSONObject> serverMsg = message.getMessageQueue();
-							message.setCount(message.getCount()+1);
+                            activity.put("count", new Integer(1));
 							if(!serverMsg.isEmpty()) {
 								serverMsg.add(activity);
 							}else {
@@ -472,6 +472,7 @@ public class ControlUtil {
 								sendbroadcast.put("activity", activity);
 								connection1.writeMsg(sendbroadcast.toJSONString());
 							}
+							message.setMessageQueue(serverMsg);
 						}
 					}
 				}
