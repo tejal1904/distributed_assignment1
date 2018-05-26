@@ -263,6 +263,17 @@ public class Control extends Thread {
 			}
 		}
 
+		//check the counter in localMessageList and resend if counter exceeds
+		/*if(localMessageList.size() > 0){
+			Iterator<MessagePOJO> messagePOJOIterator = localMessageList.iterator();
+			while (messagePOJOIterator.hasNext()){
+				MessagePOJO pojo = messagePOJOIterator.next();
+				if(pojo.getCount() == 1){
+
+				}else if(pojo.getCount())
+
+			}
+		}*/
 
 		return false;
 	}
