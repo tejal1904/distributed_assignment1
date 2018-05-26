@@ -154,6 +154,26 @@ public class Control extends Thread {
 		outwriter.flush();
 		return c;
 	}
+	
+	@SuppressWarnings("unchecked")
+	public synchronized Connection outgoingConnectionForReconnect(Socket s, String failureServerId) throws IOException {
+		log.debug("outgoing connection: " + Settings.socketAddress(s));
+		Connection c = new Connection(s);
+		c.setName(Control.SERVER);
+		connections.add(c);
+		
+		DataOutputStream out = new DataOutputStream(s.getOutputStream());
+		outwriter = new PrintWriter(out, true);
+		JSONObject newCommand = new JSONObject();
+		newCommand.put("command", "AUTHENTICATE");
+		newCommand.put("secret", Settings.getSecret());
+		newCommand.put("id", Settings.getId());
+		newCommand.put("failureServerId", failureServerId);
+		
+		outwriter.println(newCommand);
+		outwriter.flush();
+		return c;
+	}
 
 	@Override
 	public void run() {

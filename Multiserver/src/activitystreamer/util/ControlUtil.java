@@ -590,40 +590,87 @@ public class ControlUtil {
 
 	@SuppressWarnings("unchecked")
 	public void sendConnectionLostMessage(Connection con) {		
+		String failedServerId = con.getConnectedServerId();
 		if(con.isChild()) {
-			//establish new connection to its parent.
-			Socket newServer = getSocketDetails(con.getConnectedServerId());
+			//establish new connection to its parent.			
+			Socket newServer = getSocketDetails(failedServerId);
 			if(newServer != null) {
 				try {
 					System.out.println("...connection success...going for outgoingconnection...");
-					controlInstance.outgoingConnection(newServer);
+					controlInstance.outgoingConnectionForReconnect(newServer, failedServerId);
 					System.out.println("outgoing connection success");
-//					controlInstance.setQueue(false);
-//					Queue<JSONObject> q = controlInstance.getQueue();
-//					for(int i = 0;i< q.size();i++) {
-//						JSONObject queueMessage = (JSONObject) q.remove();
-//						ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
-//						while (listIterator.hasNext()) {
-//							Connection connection1 = listIterator.next();
-//							if (connection1.getName().equals(ControlUtil.SERVER) || (connection1.isLoggedInClient())) {
-//								resultOutput.put("command", "ACTIVITY_BROADCAST");
-//								resultOutput.put("activity", queueMessage.get("activity"));
-//								connection1.writeMsg(resultOutput.toJSONString());
-//							}
-//						}
-//					}
 				} catch (IOException e) {					
 					e.printStackTrace();
 				}
 			}
+		} else {
+			//When it is a parent and one of it's child has failed
+			//check if it is the only connected server (ie the crashed server is the leaf node),
+			//then get its messages and add it to all the connection's queues if not empty, else add and broadcast
+			int countOfConnInFailureNode = 0;
+			for (MessagePOJO messagePojo : globalMessageList) {
+				if(messagePojo.getFromServerId() == failedServerId) {
+					countOfConnInFailureNode++;
+					
+				}
+			}
+			Queue<JSONObject> messageQueue = null;
+			if(countOfConnInFailureNode == 1) {
+				for (MessagePOJO messagePojo : globalMessageList) {
+					if(messagePojo.getFromServerId() == failedServerId &&
+							messagePojo.getToConnection().getConnectedServerId() == Settings.getId()) {
+						messageQueue = messagePojo.getMessageQueue();						
+					}
+				}				
+			}
+			while(!messageQueue.isEmpty()) {
+				JSONObject msg = messageQueue.poll();
+				ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
+				while (listIterator.hasNext()) {
+					Connection connection1 = listIterator.next();
+					if(!connection1.getName().equals(ControlUtil.SERVER) && connection1.isLoggedInClient()) {
+						//if client send the message received
+						resultOutput.put("command", "ACTIVITY_BROADCAST");
+						resultOutput.put("activity", msg);
+						try {
+							connection1.writeMsg(resultOutput.toJSONString());
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}else {
+						for(MessagePOJO message:localMessageList) {
+							if(message.getToConnection().equals(connection1)) {
+								Queue<JSONObject> serverMsg = message.getMessageQueue();
+								if(!serverMsg.isEmpty()) {
+									serverMsg.add(msg);
+								}else {						
+									//send message for Acknowledgment
+									serverMsg.add(msg);
+									JSONObject sendbroadcast = new JSONObject();
+									sendbroadcast.put("command", "ACTIVITY_BROADCAST");
+									sendbroadcast.put("activity", msg);
+									try {
+										connection1.writeMsg(sendbroadcast.toJSONString());
+									} catch (IOException e) {
+										e.printStackTrace();
+									}
+								}
+							}
+						}
+					}	
+				}
+			}
+			
+			
+			
+			
 		}
 		for (Connection connection : controlInstance.getConnections()) {
 			if (connection.isOpen() && connection.getName().equals(ControlUtil.SERVER)) {
 				try {
 					JSONObject output = new JSONObject();
 					output.put("command", "SERVER_BROKEN");
-					output.put("serverId", con.getConnectedServerId());				
-//					controlInstance.setQueue(true);
+					output.put("serverId", con.getConnectedServerId());
 					connection.writeMsg(output.toJSONString());
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -785,7 +832,7 @@ public class ControlUtil {
 				if(!messageQueue.isEmpty()) {
 					JSONObject sendQueueMessage = new JSONObject();
 					sendQueueMessage.put("command", "ACTIVITY_BROADCAST");
-					sendQueueMessage.put("activity", sendQueueMessage.get(0));
+					sendQueueMessage.put("activity", messageQueue.peek());
 					try {
 						connection.writeMsg(sendQueueMessage.toJSONString());
 					} catch (IOException e) {
