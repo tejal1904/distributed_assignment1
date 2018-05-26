@@ -461,17 +461,14 @@ public class ControlUtil {
 					for(MessagePOJO message:localMessageList) {
 						if(message.getToConnection().equals(connection1)) {
 							Queue<JSONObject> serverMsg = message.getMessageQueue();
-                            activity.put("count", new Integer(1));
-							if(!serverMsg.isEmpty()) {
-								serverMsg.add(activity);
-							}else {
-								//Add and broadcast msg
-								serverMsg.add(activity);
+							if(serverMsg.isEmpty()) {
 								JSONObject sendbroadcast = new JSONObject();
 								sendbroadcast.put("command", "ACTIVITY_BROADCAST");
 								sendbroadcast.put("activity", activity);
 								connection1.writeMsg(sendbroadcast.toJSONString());
 							}
+                            activity.put("count", new Integer(1));
+							serverMsg.add(activity);
 							message.setMessageQueue(serverMsg);
 						}
 					}
@@ -527,18 +524,15 @@ public class ControlUtil {
 					for(MessagePOJO message:localMessageList) {
 						if(message.getToConnection().equals(connection1)) {
 							Queue<JSONObject> serverMsg = message.getMessageQueue();
-							activity.put("count", new Integer(1));
-							if(!serverMsg.isEmpty()) {
-								serverMsg.add(activity);
-							}else {
-								//send message for Acknowledgment
-								serverMsg.add(activity);
+							if(serverMsg.isEmpty()) {
 								JSONObject sendbroadcast = new JSONObject();
 								sendbroadcast.put("command", "ACTIVITY_BROADCAST");
 								sendbroadcast.put("activity", activity);
 								connection1.writeMsg(sendbroadcast.toJSONString());
 							}
-							message.setMessageQueue(serverMsg);
+                            activity.put("count", new Integer(1));
+							serverMsg.add(activity);
+							message.setMessageQueue(serverMsg);							
 						}
 					}
 				}
@@ -655,6 +649,8 @@ public class ControlUtil {
 			}
 			while(!messageQueue.isEmpty()) {
 				JSONObject msg = messageQueue.poll();
+				msg.remove("count");
+				
 				ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 				while (listIterator.hasNext()) {
 					Connection connection1 = listIterator.next();
@@ -861,15 +857,16 @@ public class ControlUtil {
 				Queue<JSONObject> messageQueue = message.getMessageQueue();
 				messageQueue.remove();
 				if(!messageQueue.isEmpty()) {
+					JSONObject activityMessage = messageQueue.peek();
 					JSONObject sendQueueMessage = new JSONObject();
 					sendQueueMessage.put("command", "ACTIVITY_BROADCAST");
-					sendQueueMessage.put("activity", messageQueue.peek());
+					sendQueueMessage.put("activity", activityMessage);
 					try {
 						connection.writeMsg(sendQueueMessage.toJSONString());
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
-
+					messageQueue.peek().put("count", new Integer(1));
 				}
 			}
 		}
