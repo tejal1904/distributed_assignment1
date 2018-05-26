@@ -226,10 +226,12 @@ public class Control extends Thread {
 				int count = ((int) messages.peek().get("count"));
 				if(count < 4){
 					messages.peek().put("count",count+1);
-					messages.peek().put("se", "ne");
+					System.out.println("trying to connect for the time " + count);
 					JSONObject sendbroadcast = new JSONObject();
 					sendbroadcast.put("command", "ACTIVITY_BROADCAST");
-					sendbroadcast.put("activity", messages.peek());
+					JSONObject activityMessage = messages.peek();
+					activityMessage.remove("count");
+					sendbroadcast.put("activity", activityMessage);
 					try {
 						entry.getKey().writeMsg(sendbroadcast.toJSONString());
 					} catch (IOException e) {
