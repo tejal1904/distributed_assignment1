@@ -7,6 +7,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -32,6 +34,7 @@ public class ControlUtil {
 	private static final String SERVER_BROKEN = "SERVER_BROKEN";
 	private static final String AUTHENTICATE_SUCCESS = "AUTHENTICATE_SUCCESS";
 	private static final String SERVER_JOIN = "SERVER_JOIN";
+	private static final String MESSAGE_STATUS = "MESSAGE_STATUS";
 	private static final String SEND_ACKNOWLEDGMENT = "ACKNOWLEDGMENT";
 	public static Map<String, Integer> lockAllowedCount = new HashMap<>();
 	public Map<String, JSONObject> serverList = new ConcurrentHashMap<String, JSONObject>();
@@ -93,6 +96,8 @@ public class ControlUtil {
 				return broadcastServerBroken(msg, connection);
 			case ControlUtil.AUTHENTICATE_SUCCESS:
 				return handleAuthSuccess(msg,connection);
+            case ControlUtil.MESSAGE_STATUS:
+                return updateGlobalMessages(msg, connection);
 			case ControlUtil.SEND_ACKNOWLEDGMENT:
 				return handleGetAcknowledgment(msg,connection);
 			default:
@@ -115,9 +120,26 @@ public class ControlUtil {
 		}
 		return false;
 
-	}	
+	}
 
-	@SuppressWarnings("unchecked")
+    private boolean updateGlobalMessages(JSONObject msg, Connection connection) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        List<MessagePOJO> messagePOJOListList = mapper.readValue((String) msg.get("queue"), new TypeReference<List<MessagePOJO>>(){});
+        Iterator<MessagePOJO> globalIterator = globalMessageList.iterator();
+        Iterator<MessagePOJO> msgIterator = messagePOJOListList.iterator();
+        while (globalIterator.hasNext()){
+            while (msgIterator.hasNext()){
+                MessagePOJO globalPojo = globalIterator.next();
+                MessagePOJO msgPojo = msgIterator.next();
+                if(globalPojo.getToConnection().equals(msgPojo.getToConnection()) && globalPojo.getFromServerId().equals(msgPojo.getFromServerId())){
+                    globalPojo.setMessageQueue(msgPojo.getMessageQueue());
+                }
+            }
+        }
+        return false;
+    }
+
+    @SuppressWarnings("unchecked")
 	private boolean authenticateServer(JSONObject msg, Connection connection) throws IOException {
 		String secret1 = (String) msg.get("secret");
 		String info = processAuthenticate(connection, msg);
@@ -419,9 +441,9 @@ public class ControlUtil {
 			sendAcknowledgment.put("command", "ACKNOWLEDGMENT");
 			sendAcknowledgment.put("fromServer",Settings.getId());
 			connection.writeMsg(sendAcknowledgment.toJSONString());
-			
+
 			JSONObject activity = (JSONObject) msg.get("activity");
-			
+
 			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 			while (listIterator.hasNext()) {
 				Connection connection1 = listIterator.next();
@@ -437,7 +459,7 @@ public class ControlUtil {
 							Queue<JSONObject> serverMsg = message.getMessageQueue();
 							if(!serverMsg.isEmpty()) {
 								serverMsg.add(activity);
-							}else {						
+							}else {
 								//Add and broadcast msg
 								serverMsg.add(activity);
 								JSONObject sendbroadcast = new JSONObject();
@@ -501,7 +523,7 @@ public class ControlUtil {
 							Queue<JSONObject> serverMsg = message.getMessageQueue();
 							if(!serverMsg.isEmpty()) {
 								serverMsg.add(activity);
-							}else {						
+							}else {
 								//send message for Acknowledgment
 								serverMsg.add(activity);
 								JSONObject sendbroadcast = new JSONObject();
@@ -511,7 +533,7 @@ public class ControlUtil {
 							}
 						}
 					}
-				}	
+				}
 			}
 			return false;
 		}
@@ -773,13 +795,13 @@ public class ControlUtil {
 
 	@SuppressWarnings("unchecked")
 	private boolean handleGetAcknowledgment(JSONObject msg, Connection connection) {
-		//put timer logic to return acknowledgment	
+		//put timer logic to return acknowledgment
 		String serverId = (String) msg.get("fromServer");
-		
+
 		for(MessagePOJO message: localMessageList) {
-			if(message.getToConnection().equals(connection) && 
+			if(message.getToConnection().equals(connection) &&
 					message.getToConnection().getConnectedServerId() == serverId) {
-				//remove message entry of that server from list 
+				//remove message entry of that server from list
 				Queue<JSONObject> messageQueue = message.getMessageQueue();
 				messageQueue.remove();
 				if(!messageQueue.isEmpty()) {
@@ -791,10 +813,10 @@ public class ControlUtil {
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
-					
-				}				
+
+				}
 			}
-		}		
+		}
 		return false;
 	}
 
