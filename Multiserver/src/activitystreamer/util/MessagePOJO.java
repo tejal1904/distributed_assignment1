@@ -10,6 +10,7 @@ public class MessagePOJO {
     private Queue<JSONObject> messageQueue;
     private Connection toConnection;
     private String fromServerId;
+    private int count = 0;
 
     public Queue<JSONObject> getMessageQueue() {
         return messageQueue;
@@ -33,6 +34,14 @@ public class MessagePOJO {
 
     public void setFromServerId(String fromServerId) {
         this.fromServerId = fromServerId;
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
     }
 
     @Override

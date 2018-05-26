@@ -461,6 +461,7 @@ public class ControlUtil {
 					for(MessagePOJO message:localMessageList) {
 						if(message.getToConnection().equals(connection1)) {
 							Queue<JSONObject> serverMsg = message.getMessageQueue();
+							message.setCount(message.getCount()+1);
 							if(!serverMsg.isEmpty()) {
 								serverMsg.add(activity);
 							}else {
@@ -525,6 +526,7 @@ public class ControlUtil {
 					for(MessagePOJO message:localMessageList) {
 						if(message.getToConnection().equals(connection1)) {
 							Queue<JSONObject> serverMsg = message.getMessageQueue();
+							message.setCount(message.getCount()+1);
 							if(!serverMsg.isEmpty()) {
 								serverMsg.add(activity);
 							}else {
@@ -618,7 +620,7 @@ public class ControlUtil {
 	public void sendConnectionLostMessage(Connection con) {		
 		String failedServerId = con.getConnectedServerId();
 		if(con.isChild()) {
-			//establish new connection to its parent.			
+			//establish new connection to its parent.
 			Socket newServer = getSocketDetails(failedServerId);
 			if(newServer != null) {
 				try {
@@ -637,7 +639,7 @@ public class ControlUtil {
 			for (MessagePOJO messagePojo : globalMessageList) {
 				if(messagePojo.getFromServerId() == failedServerId) {
 					countOfConnInFailureNode++;
-					
+
 				}
 			}
 			Queue<JSONObject> messageQueue = null;
@@ -645,9 +647,9 @@ public class ControlUtil {
 				for (MessagePOJO messagePojo : globalMessageList) {
 					if(messagePojo.getFromServerId() == failedServerId &&
 							messagePojo.getToConnection().getConnectedServerId() == Settings.getId()) {
-						messageQueue = messagePojo.getMessageQueue();						
+						messageQueue = messagePojo.getMessageQueue();
 					}
-				}				
+				}
 			}
 			while(!messageQueue.isEmpty()) {
 				JSONObject msg = messageQueue.poll();
@@ -669,7 +671,7 @@ public class ControlUtil {
 								Queue<JSONObject> serverMsg = message.getMessageQueue();
 								if(!serverMsg.isEmpty()) {
 									serverMsg.add(msg);
-								}else {						
+								}else {
 									//send message for Acknowledgment
 									serverMsg.add(msg);
 									JSONObject sendbroadcast = new JSONObject();
@@ -683,13 +685,13 @@ public class ControlUtil {
 								}
 							}
 						}
-					}	
+					}
 				}
 			}
-			
-			
-			
-			
+
+
+
+
 		}
 		for (Connection connection : controlInstance.getConnections()) {
 			if (connection.isOpen() && connection.getName().equals(ControlUtil.SERVER)) {
@@ -855,6 +857,7 @@ public class ControlUtil {
 				//remove message entry of that server from list
 				Queue<JSONObject> messageQueue = message.getMessageQueue();
 				messageQueue.remove();
+				message.setCount(message.getCount()-1);
 				if(!messageQueue.isEmpty()) {
 					JSONObject sendQueueMessage = new JSONObject();
 					sendQueueMessage.put("command", "ACTIVITY_BROADCAST");
