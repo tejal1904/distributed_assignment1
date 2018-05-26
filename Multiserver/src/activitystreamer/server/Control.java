@@ -216,7 +216,7 @@ public class Control extends Thread {
 		}
 
 		//sending message queue to all connected servers
-		List<MessagePOJO> localMessageList = ControlUtil.getInstance().localMessageList;
+		/*List<MessagePOJO> localMessageList = ControlUtil.getInstance().localMessageList;
 		List<Connection> connectionList = new ArrayList<>();
 		Queue<JSONObject> messageQueue = new LinkedList<>();
 		if(localMessageList.size() > 0){
@@ -234,11 +234,11 @@ public class Control extends Thread {
 			objectMapper.configure(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS, false);
 
 			String arrayToJson=null;
-			/*try {
-				//arrayToJson = objectMapper.writeValueAsString(localMessageList);
+			*//*try {
+				//arrayToJson = objectMapper.writeValueAsString(localMess
 			} catch (IOException e) {
 				e.printStackTrace();
-			}*/
+			}*//*
 			for(Connection connection:connectionList){
 				JSONObject output = new JSONObject();
 				output.put("command", "MESSAGE_STATUS");
@@ -273,7 +273,7 @@ public class Control extends Thread {
 				}
 
 			}
-		}
+		}*/
 		return false;
 	}
 

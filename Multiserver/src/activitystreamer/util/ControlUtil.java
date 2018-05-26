@@ -170,7 +170,7 @@ public class ControlUtil {
 				sendFailureServer = true;
 				if(localMessageList.size() > 0){
 					for(MessagePOJO pojo:localMessageList){
-						if(pojo.getToConnection().getConnectedServerId() == failureServerId){
+						if(pojo.getToConnection().getConnectedServerId().equals(failureServerId)){
 							queue = pojo.getMessageQueue();
 						}
 					}
@@ -639,7 +639,7 @@ public class ControlUtil {
 			//then get its messages and add it to all the connection's queues if not empty, else add and broadcast
 			int countOfConnInFailureNode = 0;
 			for (MessagePOJO messagePojo : globalMessageList) {
-				if(messagePojo.getFromServerId() == failedServerId) {
+				if(messagePojo.getFromServerId().equals(failedServerId)) {
 					countOfConnInFailureNode++;
 
 				}
@@ -647,8 +647,8 @@ public class ControlUtil {
 			Queue<JSONObject> messageQueue = null;
 			if(countOfConnInFailureNode == 1) {
 				for (MessagePOJO messagePojo : globalMessageList) {
-					if(messagePojo.getFromServerId() == failedServerId &&
-							messagePojo.getToConnection().getConnectedServerId() == Settings.getId()) {
+					if(messagePojo.getFromServerId().equals(failedServerId) &&
+							messagePojo.getToConnection().getConnectedServerId().equals(Settings.getId())) {
 						messageQueue = messagePojo.getMessageQueue();
 					}
 				}
@@ -738,7 +738,7 @@ public class ControlUtil {
 			String failureServerId = (String) msg.get("failureServerId");
 			if(localMessageList.size() > 0){
 				for(MessagePOJO pojo:localMessageList){
-					if(pojo.getToConnection().getConnectedServerId() == failureServerId){
+					if(pojo.getToConnection().getConnectedServerId().equals(failureServerId)){
 						failurequeue = pojo.getMessageQueue();
 					}
 				}
@@ -858,7 +858,7 @@ public class ControlUtil {
 
 		for(MessagePOJO message: localMessageList) {
 			if(message.getToConnection().equals(connection) &&
-					message.getToConnection().getConnectedServerId() == serverId) {
+					message.getToConnection().getConnectedServerId().equals(serverId)) {
 				//remove message entry of that server from list
 				Queue<JSONObject> messageQueue = message.getMessageQueue();
 				messageQueue.remove();
