@@ -191,9 +191,9 @@ public class Control extends Thread {
 				load++;
 			}
 		}
-		Map<String,JSONArray> tempQueueMap = new ConcurrentHashMap<String, JSONArray>();
+		Map<String,Queue<JSONObject>> tempQueueMap = new ConcurrentHashMap<String, Queue<JSONObject>>();
 		for(Map.Entry<Connection, Queue<JSONObject>> entry:ControlUtil.getInstance().localMessageQueueList.entrySet()){
-			tempQueueMap.put(entry.getKey().getConnectedServerId(), (JSONArray) entry.getValue());
+			tempQueueMap.put(entry.getKey().getConnectedServerId(), entry.getValue());
 		}
 
 
