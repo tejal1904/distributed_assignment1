@@ -32,6 +32,7 @@ public class ControlUtil {
 	private static final String SERVER_BROKEN = "SERVER_BROKEN";
 	private static final String AUTHENTICATE_SUCCESS = "AUTHENTICATE_SUCCESS";
 	private static final String SERVER_JOIN = "SERVER_JOIN";
+	private static final String SEND_ACKNOWLEDGMENT = "ACKNOWLEDGMENT";
 	public static Map<String, Integer> lockAllowedCount = new HashMap<>();
 	public Map<String, JSONObject> serverList = new ConcurrentHashMap<String, JSONObject>();
 	MapComparator mapComparator = new MapComparator(serverList);
@@ -91,7 +92,9 @@ public class ControlUtil {
 			case ControlUtil.SERVER_BROKEN:
 				return broadcastServerBroken(msg, connection);
 			case ControlUtil.AUTHENTICATE_SUCCESS:
-				return handleAuthSuccess(msg,connection);	
+				return handleAuthSuccess(msg,connection);
+			case ControlUtil.SEND_ACKNOWLEDGMENT:
+				return handleGetAcknowledgment(msg,connection);
 			default:
 				resultOutput.put("command", "INVALID_MESSAGE");
 				resultOutput.put("info", "Invalid command");
@@ -378,20 +381,38 @@ public class ControlUtil {
 
 	private boolean activityBroadcastUtil(Connection connection, JSONObject msg) {
 		try {
-//			Queue<JSONObject> q = controlInstance.getQueue(); 
+			JSONObject sendAcknowledgment = new JSONObject();
+			sendAcknowledgment.put("command", "ACKNOWLEDGMENT");
+			sendAcknowledgment.put("fromServer",Settings.getId());
+			connection.writeMsg(sendAcknowledgment.toJSONString());
+			
+			JSONObject activity = (JSONObject) msg.get("activity");
+			
 			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 			while (listIterator.hasNext()) {
 				Connection connection1 = listIterator.next();
 				boolean isSameConnection = (connection1.getSocket().getInetAddress() == connection.getSocket()
 						.getInetAddress());
+
 				if (!isSameConnection
-						&& ((!connection1.getName().equals(ControlUtil.SERVER) && connection1.isLoggedInClient()) || (connection1.getName().equals
-						(ControlUtil.SERVER)))) {
-//					if(controlInstance.isQueue()) {
-//						controlInstance.addQueue(msg);
-//					} else {
+						&& ((!connection1.getName().equals(ControlUtil.SERVER) && connection1.isLoggedInClient()))) {
 						connection1.writeMsg(msg.toJSONString());
-//					}
+				} else if(!isSameConnection && connection1.getName().equals(ControlUtil.SERVER)) {
+					for(MessagePOJO message:localMessageList) {
+						if(message.getToConnection().equals(connection1)) {
+							Queue<JSONObject> serverMsg = message.getMessageQueue();
+							if(!serverMsg.isEmpty()) {
+								serverMsg.add(activity);
+							}else {						
+								//Add and broadcast msg
+								serverMsg.add(activity);
+								JSONObject sendbroadcast = new JSONObject();
+								sendbroadcast.put("command", "ACTIVITY_BROADCAST");
+								sendbroadcast.put("activity", activity);
+								connection1.writeMsg(sendbroadcast.toJSONString());
+							}
+						}
+					}
 				}
 			}
 
@@ -405,23 +426,17 @@ public class ControlUtil {
 	private boolean activityMessageUtil(Connection connection, JSONObject msg) throws IOException {
 		String username = (String) msg.get("username");
 		String secret = (String) msg.get("secret");
-//		Queue<JSONObject> q = controlInstance.getQueue();		
-//		if(controlInstance.isQueue()) {
-//			//add values to Queue
-//			controlInstance.addQueue(msg);			
-//		}
 		if (username.equals("anonymous")) {
 			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 			while (listIterator.hasNext()) {
 				Connection connection1 = listIterator.next();
 
-				if (connection1.getName().equals(ControlUtil.SERVER) || (connection1.isLoggedInClient())) {
+				if (connection1.isLoggedInClient()) {
 					resultOutput.put("command", "ACTIVITY_BROADCAST");
 					resultOutput.put("activity", msg.get("activity"));
 					connection1.writeMsg(resultOutput.toJSONString());
 				}
 			}
-			return false;
 		}
 
 		if ((!connection.isLoggedInClient())) {
@@ -441,11 +456,28 @@ public class ControlUtil {
 			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
 			while (listIterator.hasNext()) {
 				Connection connection1 = listIterator.next();
-				if (connection1.getName().equals(ControlUtil.SERVER) || (connection1.isLoggedInClient())) {
+				if(!connection1.getName().equals(ControlUtil.SERVER) && connection1.isLoggedInClient()) {
+					//if client send the message received
 					resultOutput.put("command", "ACTIVITY_BROADCAST");
 					resultOutput.put("activity", activity);
 					connection1.writeMsg(resultOutput.toJSONString());
-				}
+				}else {
+					for(MessagePOJO message:localMessageList) {
+						if(message.getToConnection().equals(connection1)) {
+							Queue<JSONObject> serverMsg = message.getMessageQueue();
+							if(!serverMsg.isEmpty()) {
+								serverMsg.add(activity);
+							}else {						
+								//send message for Acknowledgment
+								serverMsg.add(activity);
+								JSONObject sendbroadcast = new JSONObject();
+								sendbroadcast.put("command", "ACTIVITY_BROADCAST");
+								sendbroadcast.put("activity", activity);
+								connection1.writeMsg(sendbroadcast.toJSONString());
+							}
+						}
+					}
+				}	
 			}
 			return false;
 		}
@@ -669,6 +701,33 @@ public class ControlUtil {
 
 		}
 		return newSocket;
+	}
+
+	@SuppressWarnings("unchecked")
+	private boolean handleGetAcknowledgment(JSONObject msg, Connection connection) {
+		//put timer logic to return acknowledgment	
+		String serverId = (String) msg.get("fromServer");
+		
+		for(MessagePOJO message: localMessageList) {
+			if(message.getToConnection().equals(connection) && 
+					message.getToConnection().getConnectedServerId() == serverId) {
+				//remove message entry of that server from list 
+				Queue<JSONObject> messageQueue = message.getMessageQueue();
+				messageQueue.remove();
+				if(!messageQueue.isEmpty()) {
+					JSONObject sendQueueMessage = new JSONObject();
+					sendQueueMessage.put("command", "ACTIVITY_BROADCAST");
+					sendQueueMessage.put("activity", sendQueueMessage.get(0));
+					try {
+						connection.writeMsg(sendQueueMessage.toJSONString());
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					
+				}				
+			}
+		}		
+		return false;
 	}
 
 }
