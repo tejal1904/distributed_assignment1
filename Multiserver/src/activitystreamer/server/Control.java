@@ -231,8 +231,7 @@ public class Control extends Thread {
 			Queue<JSONObject> messages = entry.getValue();
 			if(messages.size() > 0){
 				int count = ((int) messages.peek().get("count"));
-				if(count < 4){
-					messages.peek().put("count",count+1);
+				if(count < 4){					
 					System.out.println("trying to connect for the time " + count);
 					JSONObject sendbroadcast = new JSONObject();
 					sendbroadcast.put("command", "ACTIVITY_BROADCAST");
@@ -244,6 +243,7 @@ public class Control extends Thread {
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
+					messages.peek().put("count",count+1);
 				} 
 //				else { //Assume server failed
 //					ControlUtil.getInstance().localMessageQueueList.remove(entry.getKey());
