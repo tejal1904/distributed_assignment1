@@ -653,7 +653,7 @@ public class ControlUtil {
 					}
 				}
 			}
-			while(!messageQueue.isEmpty()) {
+			while(messageQueue!= null && !messageQueue.isEmpty()) {
 				JSONObject msg = messageQueue.poll();
 				msg.remove("count");
 				
