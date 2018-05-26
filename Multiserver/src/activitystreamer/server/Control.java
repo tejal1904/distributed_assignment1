@@ -36,25 +36,7 @@ public class Control extends Thread {
 	private int load;
 	private int rank=0;
 	private Map<Integer, Integer> levelRank;
-//	private boolean isQueue = false;
-//	private Queue<JSONObject> q = new LinkedList<>();
 	private int level = 0;
-
-//	public boolean isQueue() {
-//		return isQueue;
-//	}
-
-//	public void setQueue(boolean isQueue) {
-//		this.isQueue = isQueue;
-//	}
-	
-//	public void addQueue(JSONObject msg) {
-//		q.add(msg);
-//	}
-//	
-//	public Queue getQueue() {
-//		return q;
-//	}
 
 	public int getLevel() {
 		return level;
