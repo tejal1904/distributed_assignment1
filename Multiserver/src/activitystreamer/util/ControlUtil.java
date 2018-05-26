@@ -1,30 +1,21 @@
 package activitystreamer.util;
-import java.io.IOException;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListMap;
-
-import com.sun.xml.internal.ws.spi.db.PropertyAccessor;
+import activitystreamer.server.Connection;
+import activitystreamer.server.Control;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
-import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import activitystreamer.server.Connection;
-import activitystreamer.server.Control;
+import java.io.IOException;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ControlUtil {
 
@@ -48,8 +39,8 @@ public class ControlUtil {
 	public Map<String, JSONObject> serverList = new ConcurrentHashMap<String, JSONObject>();
 	MapComparator mapComparator = new MapComparator(serverList);
 	public Map<String, JSONObject> sortedServerList = new ConcurrentSkipListMap<>(mapComparator);
-	public List<MessagePOJO> localMessageList = new ArrayList<>();
-	public List<MessagePOJO> globalMessageList = new ArrayList<>();
+	public List<MessagePOJO> localMessageList = new CopyOnWriteArrayList<>();
+	public List<MessagePOJO> globalMessageList = new CopyOnWriteArrayList<>();
 	JSONObject resultOutput;
 	JSONParser parser = new JSONParser();
 	Control controlInstance = Control.getInstance();
@@ -476,7 +467,7 @@ public class ControlUtil {
 								sendbroadcast.put("activity", activity);
 								connection1.writeMsg(sendbroadcast.toJSONString());
 							}
-                            activity.put("count", new Integer(1));
+                            activity.put("count",1);
 							serverMsg.add(activity);
 							message.setMessageQueue(serverMsg);
 						}
@@ -539,7 +530,7 @@ public class ControlUtil {
 								sendbroadcast.put("activity", activity);
 								connection1.writeMsg(sendbroadcast.toJSONString());
 							}
-                            activity.put("count", new Integer(1));
+                            activity.put("count", 1);
 							serverMsg.add(activity);
 							message.setMessageQueue(serverMsg);							
 						}
@@ -875,7 +866,7 @@ public class ControlUtil {
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
-					messageQueue.peek().put("count", new Integer(1));
+					messageQueue.peek().put("count", 1);
 				}
 			}
 		}
