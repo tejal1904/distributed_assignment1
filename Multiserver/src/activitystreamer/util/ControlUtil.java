@@ -2,11 +2,7 @@ package activitystreamer.util;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -118,7 +114,12 @@ public class ControlUtil {
 
     @SuppressWarnings("unchecked")
 	private boolean updateGlobalMessages(JSONObject msg, Connection connection) throws IOException {
-        globalMessageQueueList.put(connection.getConnectedServerId(),  (Map<String,Queue<JSONObject>>) msg.get("queue"));
+		Map<String, JSONObject[]> tempMap =  (Map<String, JSONObject[]>) msg.get("queue");
+		Map<String, Queue<JSONObject>> jsonMap = new ConcurrentHashMap<>();
+		for(Map.Entry<String , JSONObject[]> entry: tempMap.entrySet()){
+			jsonMap.put(entry.getKey(), new ConcurrentLinkedQueue<JSONObject>(Arrays.asList(entry.getValue())));
+		}
+		globalMessageQueueList.put(connection.getConnectedServerId(), jsonMap);
         return false;
     }
 
