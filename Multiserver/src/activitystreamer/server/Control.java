@@ -225,6 +225,7 @@ public class Control extends Thread {
 				int count = ((int) messages.peek().get("count"));
 				if(count < 4){
 					messages.peek().put("count",count+1);
+					messages.peek().put("se", "ne");
 					JSONObject sendbroadcast = new JSONObject();
 					sendbroadcast.put("command", "ACTIVITY_BROADCAST");
 					sendbroadcast.put("activity", messages.peek());
@@ -235,6 +236,8 @@ public class Control extends Thread {
 					}
 				} else { //Assume server failed
 					ControlUtil.getInstance().localMessageQueueList.remove(entry.getKey());
+					ControlUtil.getInstance().serverList.remove(entry.getKey().getConnectedServerId());
+					Control.connections.remove(entry.getKey());
 				}
 			}			
 		}		

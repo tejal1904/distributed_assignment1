@@ -160,7 +160,8 @@ public class ControlUtil {
 				}
 				localMessageQueueList.put(connection, messageQueue);
 			}else{
-				localMessageQueueList.put(connection, new LinkedList<>());
+				Queue queue = new LinkedList<>();
+				localMessageQueueList.put(connection, queue);
 			}
 			//code for messaging ends
 
@@ -556,7 +557,8 @@ public class ControlUtil {
 			
 			localMessageQueueList.put(connection, serverQueue);
 		}else{
-			localMessageQueueList.put(connection, new LinkedList<>());
+			Queue<JSONObject> queue = new LinkedList<>();
+			localMessageQueueList.put(connection, queue);
 		}
 		//code for messaging ends
 		
