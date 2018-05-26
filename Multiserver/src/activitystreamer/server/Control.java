@@ -10,6 +10,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONObject;
 
@@ -224,6 +225,11 @@ public class Control extends Thread {
 			}
 			//ObjectMapper objectMapper = new ObjectMapper();
 			ObjectMapper objectMapper = new ObjectMapper();
+			objectMapper.setVisibilityChecker(objectMapper.getSerializationConfig().getDefaultVisibilityChecker()
+					.withFieldVisibility(JsonAutoDetect.Visibility.ANY)
+					.withGetterVisibility(JsonAutoDetect.Visibility.ANY)
+					.withSetterVisibility(JsonAutoDetect.Visibility.ANY)
+					.withCreatorVisibility(JsonAutoDetect.Visibility.ANY));
 			String arrayToJson=null;
 			try {
 				arrayToJson = objectMapper.writeValueAsString(localMessageList);
