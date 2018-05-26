@@ -12,6 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
 import org.json.simple.JSONObject;
 
 import activitystreamer.util.ControlUtil;
@@ -230,6 +231,8 @@ public class Control extends Thread {
 					.withGetterVisibility(JsonAutoDetect.Visibility.ANY)
 					.withSetterVisibility(JsonAutoDetect.Visibility.ANY)
 					.withCreatorVisibility(JsonAutoDetect.Visibility.ANY));
+			objectMapper.configure(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS, false);
+
 			String arrayToJson=null;
 			try {
 				arrayToJson = objectMapper.writeValueAsString(localMessageList);

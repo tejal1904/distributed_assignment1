@@ -1,11 +1,13 @@
 package activitystreamer.util;
 
 import activitystreamer.server.Connection;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.json.simple.JSONObject;
 
 import java.util.LinkedList;
 import java.util.Queue;
 
+@JsonSerialize
 public class MessagePOJO {
     private Queue<JSONObject> messageQueue = new LinkedList<>();
     private Connection toConnection;
