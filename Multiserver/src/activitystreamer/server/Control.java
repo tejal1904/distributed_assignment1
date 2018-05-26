@@ -12,6 +12,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import activitystreamer.util.ControlUtil;
@@ -190,9 +191,9 @@ public class Control extends Thread {
 				load++;
 			}
 		}
-		Map<String,JSONObject[]> tempQueueMap = new ConcurrentHashMap<String, JSONObject[]>();
+		Map<String,JSONArray> tempQueueMap = new ConcurrentHashMap<String, JSONArray>();
 		for(Map.Entry<Connection, Queue<JSONObject>> entry:ControlUtil.getInstance().localMessageQueueList.entrySet()){
-			tempQueueMap.put(entry.getKey().getConnectedServerId(), (JSONObject[]) entry.getValue().toArray());
+			tempQueueMap.put(entry.getKey().getConnectedServerId(), (JSONArray) entry.getValue());
 		}
 
 

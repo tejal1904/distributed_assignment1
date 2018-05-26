@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListMap;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -114,10 +115,10 @@ public class ControlUtil {
 
     @SuppressWarnings("unchecked")
 	private boolean updateGlobalMessages(JSONObject msg, Connection connection) throws IOException {
-		Map<String, JSONObject[]> tempMap =  (Map<String, JSONObject[]>) msg.get("queue");
+		Map<String, JSONArray> tempMap =  (Map<String, JSONArray>) msg.get("queue");
 		Map<String, Queue<JSONObject>> jsonMap = new ConcurrentHashMap<>();
-		for(Map.Entry<String , JSONObject[]> entry: tempMap.entrySet()){
-			jsonMap.put(entry.getKey(), new ConcurrentLinkedQueue<JSONObject>(Arrays.asList(entry.getValue())));
+		for(Map.Entry<String , JSONArray> entry: tempMap.entrySet()){
+			jsonMap.put(entry.getKey(), new ConcurrentLinkedQueue<JSONObject>(entry.getValue()));
 		}
 		globalMessageQueueList.put(connection.getConnectedServerId(), jsonMap);
         return false;
