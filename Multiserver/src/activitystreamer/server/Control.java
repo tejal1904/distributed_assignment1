@@ -222,13 +222,7 @@ public class Control extends Thread {
 				connectionList.add(pojo.getToConnection());
 				messageQueue.addAll(pojo.getMessageQueue());
 			}
-			ObjectMapper objectMapper = new ObjectMapper();
-			String arrayToJson=null;
-			try {
-				arrayToJson = objectMapper.writeValueAsString(localMessageList);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			//ObjectMapper objectMapper = new ObjectMapper();
 			for(Connection connection:connectionList){
 				JSONObject output = new JSONObject();
 				output.put("command", "MESSAGE_STATUS");
