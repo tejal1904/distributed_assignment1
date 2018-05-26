@@ -245,12 +245,7 @@ public class Control extends Thread {
 						e.printStackTrace();
 					}
 					messages.peek().put("count",count+1);
-				} 
-//				else { //Assume server failed
-//					ControlUtil.getInstance().localMessageQueueList.remove(entry.getKey());
-//					ControlUtil.getInstance().serverList.remove(entry.getKey().getConnectedServerId());
-//					Control.connections.remove(entry.getKey());
-//				}
+				}
 			}			
 		}		
 		

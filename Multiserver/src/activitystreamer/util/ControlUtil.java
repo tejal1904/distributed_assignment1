@@ -282,10 +282,10 @@ public class ControlUtil {
 
 	private boolean activityBroadcastUtil(Connection connection, JSONObject msg) {
 		try {
-			/*JSONObject sendAcknowledgment = new JSONObject();
+			JSONObject sendAcknowledgment = new JSONObject();
 			sendAcknowledgment.put("command", "ACKNOWLEDGMENT");
 			sendAcknowledgment.put("fromServer",Settings.getId());
-			connection.writeMsg(sendAcknowledgment.toJSONString());*/
+			connection.writeMsg(sendAcknowledgment.toJSONString());
 
 			JSONObject activity = (JSONObject) msg.get("activity");
 
