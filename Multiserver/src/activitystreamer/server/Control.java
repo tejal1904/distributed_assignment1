@@ -235,11 +235,12 @@ public class Control extends Thread {
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
-				} else { //Assume server failed
-					ControlUtil.getInstance().localMessageQueueList.remove(entry.getKey());
-					ControlUtil.getInstance().serverList.remove(entry.getKey().getConnectedServerId());
-					Control.connections.remove(entry.getKey());
-				}
+				} 
+//				else { //Assume server failed
+//					ControlUtil.getInstance().localMessageQueueList.remove(entry.getKey());
+//					ControlUtil.getInstance().serverList.remove(entry.getKey().getConnectedServerId());
+//					Control.connections.remove(entry.getKey());
+//				}
 			}			
 		}		
 		
