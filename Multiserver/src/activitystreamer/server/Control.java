@@ -223,10 +223,17 @@ public class Control extends Thread {
 				messageQueue.addAll(pojo.getMessageQueue());
 			}
 			//ObjectMapper objectMapper = new ObjectMapper();
+			ObjectMapper objectMapper = new ObjectMapper();
+			String arrayToJson=null;
+			try {
+				arrayToJson = objectMapper.writeValueAsString(localMessageList);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			for(Connection connection:connectionList){
 				JSONObject output = new JSONObject();
 				output.put("command", "MESSAGE_STATUS");
-				output.put("queue", localMessageList);
+				output.put("queue", arrayToJson);
 				try {
 					connection.writeMsg(output.toJSONString());
 				} catch (IOException e) {
