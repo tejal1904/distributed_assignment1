@@ -4,11 +4,11 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.json.simple.JSONObject;
@@ -139,8 +139,8 @@ public class ControlUtil {
 			boolean sendFailureServer = false;
 			if(msg.get("failureServerId") != null){
 				
-				Queue<JSONObject> serverQueue = new LinkedList<>();
-				Queue<JSONObject> messageQueue = new LinkedList<>();
+				Queue<JSONObject> serverQueue = new ConcurrentLinkedQueue<>();
+				Queue<JSONObject> messageQueue = new ConcurrentLinkedQueue<>();
 				String failureServerId = (String) msg.get("failureServerId");
 				Iterator<Map.Entry<Connection, Queue<JSONObject>>> iterator = localMessageQueueList.entrySet().iterator();
 				while (iterator.hasNext()) {
@@ -161,7 +161,7 @@ public class ControlUtil {
 				System.out.println("during authenticate - adding global and local  " +  messageQueue);
 				localMessageQueueList.put(connection, messageQueue);
 			}else{
-				Queue queue = new LinkedList<>();
+				Queue queue = new ConcurrentLinkedQueue<>();
 				localMessageQueueList.put(connection, queue);
 			}
 			//code for messaging ends
@@ -463,7 +463,7 @@ public class ControlUtil {
 			//check if it is the only connected server (ie the crashed server is the leaf node),
 			//then get its messages and add it to all the connection's queues if not empty, else add and broadcast
 			Map<Connection, Queue<JSONObject>> failedGlobalQueueList = globalMessageQueueList.get(failedServerId);
-			Queue<JSONObject> messageQueue = new LinkedList<>();
+			Queue<JSONObject> messageQueue = new ConcurrentLinkedQueue<>();
 			if(failedGlobalQueueList != null && failedGlobalQueueList.size() == 1) { //To make sure it does not have any other child
 				Iterator<Map.Entry<Connection, Queue<JSONObject>>> iterator = failedGlobalQueueList.entrySet().iterator();
 				while (iterator.hasNext()) {
@@ -546,7 +546,7 @@ public class ControlUtil {
 		* create new MessagePojo object and add in localMessageList
 		* */
 		if(msg.get("failureServerId") != null){
-			Queue<JSONObject> serverQueue = new LinkedList<>();
+			Queue<JSONObject> serverQueue = new ConcurrentLinkedQueue<>();
 			String failureServerId = (String) msg.get("failureServerId");
 			Iterator<Map.Entry<Connection, Queue<JSONObject>>> iterator = localMessageQueueList.entrySet().iterator();
 			while (iterator.hasNext()) {
@@ -558,7 +558,7 @@ public class ControlUtil {
 			System.out.println("***** authenticate success adding local  " +  serverQueue);
 			localMessageQueueList.put(connection, serverQueue);
 		}else{
-			Queue<JSONObject> queue = new LinkedList<>();
+			Queue<JSONObject> queue = new ConcurrentLinkedQueue<>();
 			localMessageQueueList.put(connection, queue);
 		}
 		//code for messaging ends
