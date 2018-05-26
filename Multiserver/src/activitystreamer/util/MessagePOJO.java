@@ -1,6 +1,8 @@
 package activitystreamer.util;
 
 import activitystreamer.server.Connection;
+import org.codehaus.jackson.annotate.JsonBackReference;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.json.simple.JSONObject;
@@ -8,17 +10,16 @@ import org.json.simple.JSONObject;
 import java.util.LinkedList;
 import java.util.Queue;
 
-@JsonSerialize
+
 public class MessagePOJO {
 
-
-    @JsonProperty
+    @JsonIgnore
     private Queue<JSONObject> messageQueue = new LinkedList<>();
-    @JsonProperty
+    @JsonIgnore
     private Connection toConnection;
-    @JsonProperty
+    @JsonIgnore
     private String fromServerId;
-    @JsonProperty
+    @JsonIgnore
     private int count = 0;
 
     public Queue<JSONObject> getMessageQueue() {
