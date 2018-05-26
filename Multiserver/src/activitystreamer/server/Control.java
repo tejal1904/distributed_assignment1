@@ -207,8 +207,11 @@ public class Control extends Thread {
 					output.put("parentId", getParentServerId());
 					output.put("level", getLevel());
 					output.put("rank", getRank());
-//					System.out.println(output.toJSONString());
 					connection.writeMsg(output.toJSONString());
+					
+					JSONObject sendQueueValues = new JSONObject();
+					sendQueueValues.put("command", "MESSAGE_STATUS");
+					sendQueueValues.put("queue", ControlUtil.getInstance().localMessageQueueList);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -216,64 +219,64 @@ public class Control extends Thread {
 		}
 
 		//sending message queue to all connected servers
-		/*List<MessagePOJO> localMessageList = ControlUtil.getInstance().localMessageList;
-		List<Connection> connectionList = new ArrayList<>();
-		Queue<JSONObject> messageQueue = new LinkedList<>();
-		if(localMessageList.size() > 0){
-			for(MessagePOJO pojo:localMessageList){
-				connectionList.add(pojo.getToConnection());
-				messageQueue.addAll(pojo.getMessageQueue());
-			}
-			//ObjectMapper objectMapper = new ObjectMapper();
-			ObjectMapper objectMapper = new ObjectMapper();
-			objectMapper.setVisibilityChecker(objectMapper.getSerializationConfig().getDefaultVisibilityChecker()
-					.withFieldVisibility(JsonAutoDetect.Visibility.ANY)
-					.withGetterVisibility(JsonAutoDetect.Visibility.ANY)
-					.withSetterVisibility(JsonAutoDetect.Visibility.ANY)
-					.withCreatorVisibility(JsonAutoDetect.Visibility.ANY));
-			objectMapper.configure(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS, false);
-
-			String arrayToJson=null;
-			*//*try {
-				//arrayToJson = objectMapper.writeValueAsString(localMess
-			} catch (IOException e) {
-				e.printStackTrace();
-			}*//*
-			for(Connection connection:connectionList){
-				JSONObject output = new JSONObject();
-				output.put("command", "MESSAGE_STATUS");
-				output.put("queue", localMessageList);
-				try {
-					connection.writeMsg(output.toJSONString());
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
+//		List<MessagePOJO> localMessageList = ControlUtil.getInstance().localMessageList;
+//		List<Connection> connectionList = new ArrayList<>();
+//		Queue<JSONObject> messageQueue = new LinkedList<>();
+//		if(localMessageList.size() > 0){
+//			for(MessagePOJO pojo:localMessageList){
+//				connectionList.add(pojo.getToConnection());
+//				messageQueue.addAll(pojo.getMessageQueue());
+//			}
+//			//ObjectMapper objectMapper = new ObjectMapper();
+//			ObjectMapper objectMapper = new ObjectMapper();
+//			objectMapper.setVisibilityChecker(objectMapper.getSerializationConfig().getDefaultVisibilityChecker()
+//					.withFieldVisibility(JsonAutoDetect.Visibility.ANY)
+//					.withGetterVisibility(JsonAutoDetect.Visibility.ANY)
+//					.withSetterVisibility(JsonAutoDetect.Visibility.ANY)
+//					.withCreatorVisibility(JsonAutoDetect.Visibility.ANY));
+//			objectMapper.configure(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS, false);
+//
+//			String arrayToJson=null;
+//			try {
+//				arrayToJson = objectMapper.writeValueAsString(localMessageList);
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//			for(Connection connection:connectionList){
+//				JSONObject output = new JSONObject();
+//				output.put("command", "MESSAGE_STATUS");
+//				output.put("queue", arrayToJson);
+//				try {
+//					connection.writeMsg(output.toJSONString());
+//				} catch (IOException e) {
+//					e.printStackTrace();
+//				}
+//			}
+//		}
 
 		//check the counter in localMessageList and resend if counter exceeds
-		if(localMessageList.size() > 0){
-			Iterator<MessagePOJO> messagePOJOIterator = localMessageList.iterator();
-			while (messagePOJOIterator.hasNext()){
-				MessagePOJO pojo = messagePOJOIterator.next();
-				Queue<JSONObject> messages = pojo.getMessageQueue();
-				if(messages.size() > 0){
-					int count = ((Long)messages.peek().get("count")).intValue();
-					if(count < 4){
-						messages.peek().put("count",count+1);
-						JSONObject sendbroadcast = new JSONObject();
-						sendbroadcast.put("command", "ACTIVITY_BROADCAST");
-						sendbroadcast.put("activity", messages.peek());
-						try {
-							pojo.getToConnection().writeMsg(sendbroadcast.toJSONString());
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
+		Iterator<Map.Entry<Connection, Queue<JSONObject>>> iterator = ControlUtil.getInstance().localMessageQueueList.entrySet().iterator();
+		while (iterator.hasNext()) {
+			Map.Entry<Connection, Queue<JSONObject>> entry = iterator.next();
+			Queue<JSONObject> messages = entry.getValue();
+			if(messages.size() > 0){
+				int count = ((Long)messages.peek().get("count")).intValue();
+				if(count < 4){
+					messages.peek().put("count",count+1);
+					JSONObject sendbroadcast = new JSONObject();
+					sendbroadcast.put("command", "ACTIVITY_BROADCAST");
+					sendbroadcast.put("activity", messages.peek());
+					try {
+						entry.getKey().writeMsg(sendbroadcast.toJSONString());
+					} catch (IOException e) {
+						e.printStackTrace();
 					}
+				} else { //Assume server failed
+					ControlUtil.getInstance().localMessageQueueList.remove(entry.getKey());
 				}
-
-			}
-		}*/
+			}			
+		}		
+		
 		return false;
 	}
 

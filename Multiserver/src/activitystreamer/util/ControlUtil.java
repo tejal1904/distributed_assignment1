@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -43,9 +44,8 @@ public class ControlUtil {
 	public Map<String, JSONObject> serverList = new ConcurrentHashMap<String, JSONObject>();
 	MapComparator mapComparator = new MapComparator(serverList);
 	public Map<String, JSONObject> sortedServerList = new ConcurrentSkipListMap<>(mapComparator);
-	@JsonIgnore
-	public List<MessagePOJO> localMessageList = new CopyOnWriteArrayList<>();
-	public List<MessagePOJO> globalMessageList = new CopyOnWriteArrayList<>();
+	public Map<Connection, Queue<JSONObject>> localMessageQueueList = new ConcurrentHashMap<Connection, Queue<JSONObject>>();
+	public Map<String, Map<Connection, Queue<JSONObject>>> globalMessageQueueList = new ConcurrentHashMap<String, Map<Connection, Queue<JSONObject>>>();
 	JSONObject resultOutput;
 	JSONParser parser = new JSONParser();
 	Control controlInstance = Control.getInstance();
@@ -89,13 +89,7 @@ public class ControlUtil {
 			case ControlUtil.ACTIVITY_BROADCAST:
 				return activityBroadcastUtil(connection, msg);
 			case ControlUtil.SERVER_ANNOUNCE:
-				return serverAnnounce(msg, connection);
-			case ControlUtil.LOCK_REQUEST:
-				return receiveLockRequestClient(msg, connection);
-			case ControlUtil.LOCK_ALLOWED:
-				return receiveLockAllowed(msg, connection);
-			case ControlUtil.LOCK_DENIED:
-				return receiveLockDenied(msg, connection);
+				return serverAnnounce(msg, connection);			
 			case ControlUtil.SERVER_BROKEN:
 				return broadcastServerBroken(msg, connection);
 			case ControlUtil.AUTHENTICATE_SUCCESS:
@@ -126,26 +120,9 @@ public class ControlUtil {
 
 	}
 
-    private boolean updateGlobalMessages(JSONObject msg, Connection connection) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-		mapper.setVisibilityChecker(mapper.getSerializationConfig().getDefaultVisibilityChecker()
-				.withFieldVisibility(JsonAutoDetect.Visibility.ANY)
-				.withGetterVisibility(JsonAutoDetect.Visibility.ANY)
-				.withSetterVisibility(JsonAutoDetect.Visibility.ANY)
-				.withCreatorVisibility(JsonAutoDetect.Visibility.ANY));
-		mapper.configure(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS, false);
-        List<MessagePOJO> messagePOJOListList = mapper.readValue((JsonParser) msg.get("queue"), new TypeReference<List<MessagePOJO>>(){});;
-        Iterator<MessagePOJO> globalIterator = globalMessageList.iterator();
-        Iterator<MessagePOJO> msgIterator = messagePOJOListList.iterator();
-        while (globalIterator.hasNext()){
-            while (msgIterator.hasNext()){
-                MessagePOJO globalPojo = globalIterator.next();
-                MessagePOJO msgPojo = msgIterator.next();
-                if(globalPojo.getToConnection().equals(msgPojo.getToConnection()) && globalPojo.getFromServerId().equals(msgPojo.getFromServerId())){
-                    globalPojo.setMessageQueue(msgPojo.getMessageQueue());
-                }
-            }
-        }
+    @SuppressWarnings("unchecked")
+	private boolean updateGlobalMessages(JSONObject msg, Connection connection) throws IOException {
+        globalMessageQueueList.put(connection.getConnectedServerId(),  (Map<Connection,Queue<JSONObject>>) msg.get("queue"));
         return false;
     }
 
@@ -165,35 +142,29 @@ public class ControlUtil {
 			* */
 			boolean sendFailureServer = false;
 			if(msg.get("failureServerId") != null){
-				Queue<JSONObject> queue = null;
-				String failureServerId = (String) msg.get("failureServerId");
-				sendFailureServer = true;
-				if(localMessageList.size() > 0){
-					for(MessagePOJO pojo:localMessageList){
-						if(pojo.getToConnection().getConnectedServerId().equals(failureServerId)){
-							queue = pojo.getMessageQueue();
-						}
-					}
-				}
+				
+				Queue<JSONObject> serverQueue = new LinkedList<>();
 				Queue<JSONObject> messageQueue = new LinkedList<>();
-				if(globalMessageList.size() > 0){
-					for(MessagePOJO messagePOJO:globalMessageList){
-						if(messagePOJO.getToConnection().equals(connection) && messagePOJO.getFromServerId().equals(failureServerId)){
-							messageQueue.addAll(messagePOJO.getMessageQueue());
-							messageQueue.addAll(queue);
-						}
-					}
+				String failureServerId = (String) msg.get("failureServerId");
+				Iterator<Map.Entry<Connection, Queue<JSONObject>>> iterator = localMessageQueueList.entrySet().iterator();
+				while (iterator.hasNext()) {
+					Map.Entry<Connection, Queue<JSONObject>> entry = iterator.next();
+					if(entry.getKey().getConnectedServerId().equals(failureServerId)) {
+						serverQueue = entry.getValue();
+					}				
 				}
-				MessagePOJO messagePOJO = new MessagePOJO();
-				messagePOJO.setFromServerId(Settings.getId());
-				messagePOJO.setToConnection(connection);
-				messagePOJO.setMessageQueue(messageQueue);
-				localMessageList.add(messagePOJO);
+				Map<Connection, Queue<JSONObject>> globalListofFailedServer = globalMessageQueueList.get(failureServerId);
+				Iterator<Map.Entry<Connection, Queue<JSONObject>>> iterator1 = localMessageQueueList.entrySet().iterator();
+				while (iterator1.hasNext()) {
+					Map.Entry<Connection, Queue<JSONObject>> entry = iterator1.next();
+					if(entry.getKey().getConnectedServerId().equals((String) msg.get("id"))) {
+						messageQueue = entry.getValue();
+						messageQueue.addAll(serverQueue);
+					}				
+				}
+				localMessageQueueList.put(connection, messageQueue);
 			}else{
-				MessagePOJO messagePOJO = new MessagePOJO();
-				messagePOJO.setFromServerId(Settings.getId());
-				messagePOJO.setToConnection(connection);
-				localMessageList.add(messagePOJO);
+				localMessageQueueList.put(connection, new LinkedList<>());
 			}
 			//code for messaging ends
 
@@ -252,116 +223,7 @@ public class ControlUtil {
 		return false;
 	}
 
-	@SuppressWarnings("unchecked")
-	private boolean receiveLockDenied(JSONObject msg, Connection connection) throws IOException {
-		if(!connection.getName().equals(ControlUtil.SERVER)){
-			resultOutput.put("command", "INVALID_MESSAGE");
-			resultOutput.put("info", "received LOCK_DENIED from an unauthenticated server");
-			connection.writeMsg(resultOutput.toJSONString());
-			return true;
-		}
-		String username2 = (String) msg.get("username");
-		JSONObject object = null;
-		Connection connection1 = null;
-		if(Control.getInstance().getGlobalRegisteredClients().containsKey(username2)){
-			Control.getInstance().getGlobalRegisteredClients().remove(username2);
-		}
-		for (Map.Entry<JSONObject, Connection> entry : controlInstance.getToBeRegisteredClients().entrySet()) {
-			if (username2.equals(entry.getKey().get("username").toString())) {
-				object = entry.getKey();
-				connection1 = entry.getValue();
-			}
-		}
-		if (null != connection1 && null != object) {		
-			controlInstance.getToBeRegisteredClients().remove(object);
-			lockAllowedCount.remove(username2);
-			resultOutput.put("command", "REGISTER_FAILED");
-			resultOutput.put("info",
-					object.get("username").toString() + " is already registered with the system");
-			connection1.writeMsg(resultOutput.toJSONString());
-		}
-		
-		broadcastUtil(connection, msg);
-		return false;
-	}
 
-	@SuppressWarnings("unchecked")
-	private boolean receiveLockAllowed(JSONObject msg, Connection connection) throws IOException {
-		String username1 = (String) msg.get("username");
-		if(!connection.getName().equals(ControlUtil.SERVER)){
-			resultOutput.put("command", "INVALID_MESSAGE");
-			resultOutput.put("info", "received LOCK_ALLOWED from an unauthenticated server");
-			connection.writeMsg(resultOutput.toJSONString());
-			return true;
-		}
-		int count = 0;
-		if (null != lockAllowedCount.get(username1)) {
-			count = lockAllowedCount.get(username1);
-		}
-		lockAllowedCount.put(username1, count + 1);
-		if (serverList.size() == lockAllowedCount.get(username1)) {
-			Iterator<JSONObject> iterator = controlInstance.getToBeRegisteredClients().keySet().iterator();
-			while (iterator.hasNext()) {
-				JSONObject object = iterator.next();
-				Connection connection1 = controlInstance.getToBeRegisteredClients().get(object);
-				if (null != object && null != connection1) {
-					if (username1.equals(object.get("username").toString())) {
-						lockAllowedCount.remove(username1);
-						controlInstance.addRegisteredClients(username1, object.get("secret").toString());
-						resultOutput.put("command", "REGISTER_SUCCESS");
-						resultOutput.put("info", "register success for " + username1);
-						connection1.writeMsg(resultOutput.toJSONString());
-						return false;
-					}
-				}
-			}
-		}
-		
-		broadcastUtil(connection, msg);
-		return false;
-	}
-
-	@SuppressWarnings("unchecked")
-	private boolean receiveLockRequestClient(JSONObject msg, Connection connection) throws IOException {
-		// process received lock request
-		String username3 = (String) msg.get("username");
-		String secret3 = (String) msg.get("secret");
-		if(!connection.getName().equals(ControlUtil.SERVER)){
-			resultOutput.put("command", "INVALID_MESSAGE");
-			resultOutput.put("info", "received LOCK_REQUEST from an unauthenticated server");
-			connection.writeMsg(resultOutput.toJSONString());
-			return true;
-		}
-
-		String data = processLockRequest(msg, connection);
-		if (data.equals(LOCK_ALLOWED)) {
-			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
-			controlInstance.addGlobalRegisteredClients(username3,secret3);
-			while (listIterator.hasNext()) {
-				Connection connection1 = listIterator.next();
-				if (connection1.getName().equals(ControlUtil.SERVER)) {
-					resultOutput.put("command", data);
-					resultOutput.put("username", username3);
-					resultOutput.put("secret", secret3);
-					connection1.writeMsg(resultOutput.toJSONString());
-					return false;
-				}
-			}
-		} else if (data.equals(LOCK_DENIED)) {
-			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
-			while (listIterator.hasNext()) {
-				Connection connection1 = listIterator.next();
-				if (connection1.getName().equals(ControlUtil.SERVER)) {
-					resultOutput.put("command", data);
-					resultOutput.put("username", username3);
-					resultOutput.put("secret", secret3);
-					connection1.writeMsg(resultOutput.toJSONString());
-					return false;
-				}
-			}
-		}
-		return false;
-	}
 
 	@SuppressWarnings("unchecked")
 	private boolean registerClient(JSONObject msg, Connection connection) throws IOException {
@@ -369,27 +231,11 @@ public class ControlUtil {
 		String secret = (String) msg.get("secret");
 		
 		if (!controlInstance.getRegisteredClients().containsKey(username) && !controlInstance.getGlobalRegisteredClients().containsKey(username)) {
-//			controlInstance.addToBeRegisteredClients(msg, connection);
-//			lockAllowedCount.put(username, 0);
-//			if (serverList.size() == 0) {
 			resultOutput.put("command", "REGISTER_SUCCESS");
 			resultOutput.put("info", "register success for " + username);
 			connection.writeMsg(resultOutput.toJSONString());
 			controlInstance.addRegisteredClients(username, secret);
 			return false;
-//			}
-//			ListIterator<Connection> listIterator = controlInstance.getConnections().listIterator();
-//			while (listIterator.hasNext()) {
-//				Connection connection1 = listIterator.next();
-//				if (connection1.getName().equals(ControlUtil.SERVER)) {
-//					JSONObject output = new JSONObject();
-//					output.put("command", LOCK_REQUEST);
-//					output.put("username", username);
-//					output.put("secret", secret);
-//					connection1.writeMsg(output.toJSONString());
-//					return false;
-//				}
-//			}
 		} else if(connection.isLoggedInClient() == true) {
 			resultOutput.put("command", "INVALID_MESSAGE");
 			resultOutput.put("info", "Client already logged in to the system");
@@ -401,18 +247,7 @@ public class ControlUtil {
 			connection.writeMsg(resultOutput.toJSONString());
 			return true;
 		}		
-	}
-
-	private String processLockRequest(JSONObject msg, Connection connection) throws IOException {
-		String username = (String) msg.get("username");
-		if (controlInstance.getRegisteredClients().containsKey(username)) {
-			return LOCK_DENIED;
-		} else {
-			broadcastUtil(connection, msg);
-			return LOCK_ALLOWED;
-
-		}
-	}
+	}	
 
 	private String processAuthenticate(Connection connection, JSONObject msg) {
 		System.out.println("in authenticate: "+connection.getSocket().getInetAddress());
@@ -464,20 +299,16 @@ public class ControlUtil {
 						&& ((!connection1.getName().equals(ControlUtil.SERVER) && connection1.isLoggedInClient()))) {
 						connection1.writeMsg(msg.toJSONString());
 				} else if(!isSameConnection && connection1.getName().equals(ControlUtil.SERVER)) {
-					for(MessagePOJO message:localMessageList) {
-						if(message.getToConnection().equals(connection1)) {
-							Queue<JSONObject> serverMsg = message.getMessageQueue();
-							if(serverMsg.isEmpty()) {
-								JSONObject sendbroadcast = new JSONObject();
-								sendbroadcast.put("command", "ACTIVITY_BROADCAST");
-								sendbroadcast.put("activity", activity);
-								connection1.writeMsg(sendbroadcast.toJSONString());
-							}
-                            activity.put("count",1);
-							serverMsg.add(activity);
-							message.setMessageQueue(serverMsg);
-						}
+					Queue<JSONObject> localqueue = localMessageQueueList.get(connection1);
+					if(localqueue.isEmpty()) {
+						JSONObject sendbroadcast = new JSONObject();
+						sendbroadcast.put("command", "ACTIVITY_BROADCAST");
+						sendbroadcast.put("activity", activity);
+						connection1.writeMsg(sendbroadcast.toJSONString());
 					}
+                    activity.put("count", 1);
+                    localqueue.add(activity);
+                    localMessageQueueList.put(connection1, localqueue);
 				}
 			}
 
@@ -527,20 +358,16 @@ public class ControlUtil {
 					resultOutput.put("activity", activity);
 					connection1.writeMsg(resultOutput.toJSONString());
 				}else {
-					for(MessagePOJO message:localMessageList) {
-						if(message.getToConnection().equals(connection1)) {
-							Queue<JSONObject> serverMsg = message.getMessageQueue();
-							if(serverMsg.isEmpty()) {
-								JSONObject sendbroadcast = new JSONObject();
-								sendbroadcast.put("command", "ACTIVITY_BROADCAST");
-								sendbroadcast.put("activity", activity);
-								connection1.writeMsg(sendbroadcast.toJSONString());
-							}
-                            activity.put("count", 1);
-							serverMsg.add(activity);
-							message.setMessageQueue(serverMsg);							
-						}
+					Queue<JSONObject> localqueue = localMessageQueueList.get(connection1);
+					if(localqueue.isEmpty()) {
+						JSONObject sendbroadcast = new JSONObject();
+						sendbroadcast.put("command", "ACTIVITY_BROADCAST");
+						sendbroadcast.put("activity", activity);
+						connection1.writeMsg(sendbroadcast.toJSONString());
 					}
+                    activity.put("count", 1);
+                    localqueue.add(activity);
+                    localMessageQueueList.put(connection1, localqueue);					
 				}
 			}
 			return false;
@@ -637,22 +464,19 @@ public class ControlUtil {
 			//When it is a parent and one of it's child has failed
 			//check if it is the only connected server (ie the crashed server is the leaf node),
 			//then get its messages and add it to all the connection's queues if not empty, else add and broadcast
-			int countOfConnInFailureNode = 0;
-			for (MessagePOJO messagePojo : globalMessageList) {
-				if(messagePojo.getFromServerId().equals(failedServerId)) {
-					countOfConnInFailureNode++;
-
+			Map<Connection, Queue<JSONObject>> failedGlobalQueueList = globalMessageQueueList.get(failedServerId);
+			Queue<JSONObject> messageQueue = new LinkedList<>();
+			if(failedGlobalQueueList != null && failedGlobalQueueList.size() == 1) { //To make sure it does not have any other child
+				Iterator<Map.Entry<Connection, Queue<JSONObject>>> iterator = failedGlobalQueueList.entrySet().iterator();
+				while (iterator.hasNext()) {
+					Map.Entry<Connection, Queue<JSONObject>> entry = iterator.next();
+					if(entry.getKey().getConnectedServerId().equals(Settings.getId())) {
+						messageQueue = entry.getValue();
+					}				
 				}
+				
 			}
-			Queue<JSONObject> messageQueue = null;
-			if(countOfConnInFailureNode == 1) {
-				for (MessagePOJO messagePojo : globalMessageList) {
-					if(messagePojo.getFromServerId().equals(failedServerId) &&
-							messagePojo.getToConnection().getConnectedServerId().equals(Settings.getId())) {
-						messageQueue = messagePojo.getMessageQueue();
-					}
-				}
-			}
+			
 			while(messageQueue!= null && !messageQueue.isEmpty()) {
 				JSONObject msg = messageQueue.poll();
 				msg.remove("count");
@@ -669,34 +493,25 @@ public class ControlUtil {
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
-					}else {
-						for(MessagePOJO message:localMessageList) {
-							if(message.getToConnection().equals(connection1)) {
-								Queue<JSONObject> serverMsg = message.getMessageQueue();
-								if(!serverMsg.isEmpty()) {
-									serverMsg.add(msg);
-								}else {
-									//send message for Acknowledgment
-									serverMsg.add(msg);
-									JSONObject sendbroadcast = new JSONObject();
-									sendbroadcast.put("command", "ACTIVITY_BROADCAST");
-									sendbroadcast.put("activity", msg);
-									try {
-										connection1.writeMsg(sendbroadcast.toJSONString());
-									} catch (IOException e) {
-										e.printStackTrace();
-									}
-								}
-								message.setMessageQueue(serverMsg);
+					} else {
+						Queue<JSONObject> localqueue = localMessageQueueList.get(connection1);
+						if(localqueue.isEmpty()) {
+							JSONObject sendbroadcast = new JSONObject();
+							sendbroadcast.put("command", "ACTIVITY_BROADCAST");
+							sendbroadcast.put("activity", msg);
+							try {
+								connection1.writeMsg(sendbroadcast.toJSONString());
+							} catch (IOException e) {
+								e.printStackTrace();
 							}
 						}
+	                    msg.put("count", 1);
+	                    localqueue.add(msg);
+	                    localMessageQueueList.put(connection1, localqueue);
+						
 					}
 				}
 			}
-
-
-
-
 		}
 		for (Connection connection : controlInstance.getConnections()) {
 			if (connection.isOpen() && connection.getName().equals(ControlUtil.SERVER)) {
@@ -733,30 +548,23 @@ public class ControlUtil {
 		* create new MessagePojo object and add in localMessageList
 		* */
 		if(msg.get("failureServerId") != null){
-			Queue<JSONObject> failurequeue = null;
-			Queue<JSONObject> serverqueue = null;
+			Queue<JSONObject> serverQueue = new LinkedList<>();
 			String failureServerId = (String) msg.get("failureServerId");
-			if(localMessageList.size() > 0){
-				for(MessagePOJO pojo:localMessageList){
-					if(pojo.getToConnection().getConnectedServerId().equals(failureServerId)){
-						failurequeue = pojo.getMessageQueue();
-					}
-				}
+			Iterator<Map.Entry<Connection, Queue<JSONObject>>> iterator = localMessageQueueList.entrySet().iterator();
+			while (iterator.hasNext()) {
+				Map.Entry<Connection, Queue<JSONObject>> entry = iterator.next();
+				if(entry.getKey().getConnectedServerId().equals(failureServerId)) {
+					serverQueue = entry.getValue();
+				}				
 			}
-			MessagePOJO messagePOJO = new MessagePOJO();
-			messagePOJO.setFromServerId(Settings.getId());
-			messagePOJO.setToConnection(connection);
-			messagePOJO.setMessageQueue(failurequeue);
-			localMessageList.add(messagePOJO);
+			
+			localMessageQueueList.put(connection, serverQueue);
 		}else{
-			MessagePOJO messagePOJO = new MessagePOJO();
-			messagePOJO.setFromServerId(Settings.getId());
-			messagePOJO.setToConnection(connection);
-			localMessageList.add(messagePOJO);
+			localMessageQueueList.put(connection, new LinkedList<>());
 		}
-
-
 		//code for messaging ends
+		
+		
 		Map<String,String> receivedClients = (Map<String,String>) msg.get("clientList");
 		Iterator clientIterator = receivedClients.entrySet().iterator();
 		while (clientIterator.hasNext()) {
@@ -854,28 +662,21 @@ public class ControlUtil {
 	@SuppressWarnings("unchecked")
 	private boolean handleGetAcknowledgment(JSONObject msg, Connection connection) {
 		//put timer logic to return acknowledgment
-		String serverId = (String) msg.get("fromServer");
-
-		for(MessagePOJO message: localMessageList) {
-			if(message.getToConnection().equals(connection) &&
-					message.getToConnection().getConnectedServerId().equals(serverId)) {
-				//remove message entry of that server from list
-				Queue<JSONObject> messageQueue = message.getMessageQueue();
-				messageQueue.remove();
-				if(!messageQueue.isEmpty()) {
-					JSONObject activityMessage = messageQueue.peek();
-					JSONObject sendQueueMessage = new JSONObject();
-					sendQueueMessage.put("command", "ACTIVITY_BROADCAST");
-					sendQueueMessage.put("activity", activityMessage);
-					try {
-						connection.writeMsg(sendQueueMessage.toJSONString());
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-					messageQueue.peek().put("count", 1);
-				}
+		Queue<JSONObject> messageQueue = localMessageQueueList.get(connection);
+		messageQueue.remove();
+		if(!messageQueue.isEmpty()) {
+			JSONObject activityMessage = messageQueue.peek();
+			JSONObject sendQueueMessage = new JSONObject();
+			sendQueueMessage.put("command", "ACTIVITY_BROADCAST");
+			sendQueueMessage.put("activity", activityMessage);
+			try {
+				connection.writeMsg(sendQueueMessage.toJSONString());
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
-		}
+			messageQueue.peek().put("count", 1);
+		}	
+		
 		return false;
 	}
 
