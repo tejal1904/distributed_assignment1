@@ -359,7 +359,7 @@ public class ControlUtil {
 					connection1.writeMsg(resultOutput.toJSONString());
 				}else {
 					Queue<JSONObject> localqueue = localMessageQueueList.get(connection1);
-					if(localqueue.isEmpty()) {
+					if(localqueue != null && localqueue.isEmpty()) {
 						JSONObject sendbroadcast = new JSONObject();
 						sendbroadcast.put("command", "ACTIVITY_BROADCAST");
 						sendbroadcast.put("activity", activity);
