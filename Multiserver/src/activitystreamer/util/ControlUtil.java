@@ -298,7 +298,7 @@ public class ControlUtil {
 						connection1.writeMsg(msg.toJSONString());
 				} else if(!isSameConnection && connection1.getName().equals(ControlUtil.SERVER)) {
 					Queue<JSONObject> localqueue = localMessageQueueList.get(connection1);
-					if(localqueue.isEmpty()) {
+					if(localqueue != null && localqueue.isEmpty()) {
 						JSONObject sendbroadcast = new JSONObject();
 						sendbroadcast.put("command", "ACTIVITY_BROADCAST");
 						sendbroadcast.put("activity", activity);
@@ -468,7 +468,7 @@ public class ControlUtil {
 				Iterator<Map.Entry<Connection, Queue<JSONObject>>> iterator = failedGlobalQueueList.entrySet().iterator();
 				while (iterator.hasNext()) {
 					Map.Entry<Connection, Queue<JSONObject>> entry = iterator.next();
-					if(entry.getKey().getConnectedServerId().equals(Settings.getId())) {
+					if(((Connection)entry.getKey()).getConnectedServerId().equals(Settings.getId())) {
 						messageQueue = entry.getValue();
 					}				
 				}
@@ -662,10 +662,10 @@ public class ControlUtil {
 	private boolean handleGetAcknowledgment(JSONObject msg, Connection connection) {
 		//put timer logic to return acknowledgment
 		Queue<JSONObject> messageQueue = localMessageQueueList.get(connection);
-		if(messageQueue != null && messageQueue.isEmpty()) {
+		if(messageQueue != null && !messageQueue.isEmpty()) {
 			messageQueue.poll();
 		}
-		if(!messageQueue.isEmpty()) {
+		if(messageQueue != null && !messageQueue.isEmpty()) {
 			JSONObject activityMessage = messageQueue.peek();
 			JSONObject sendQueueMessage = new JSONObject();
 			sendQueueMessage.put("command", "ACTIVITY_BROADCAST");
