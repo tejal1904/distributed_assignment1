@@ -260,7 +260,7 @@ public class Control extends Thread {
 			Map.Entry<Connection, Queue<JSONObject>> entry = iterator.next();
 			Queue<JSONObject> messages = entry.getValue();
 			if(messages.size() > 0){
-				int count = ((Long)messages.peek().get("count")).intValue();
+				int count = ((int) messages.peek().get("count"));
 				if(count < 4){
 					messages.peek().put("count",count+1);
 					JSONObject sendbroadcast = new JSONObject();
