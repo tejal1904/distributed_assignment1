@@ -158,6 +158,7 @@ public class ControlUtil {
 						messageQueue.addAll(serverQueue);
 					}				
 				}
+				System.out.println("during authenticate - adding global and local  " +  messageQueue);
 				localMessageQueueList.put(connection, messageQueue);
 			}else{
 				Queue queue = new LinkedList<>();
@@ -554,7 +555,7 @@ public class ControlUtil {
 					serverQueue = entry.getValue();
 				}				
 			}
-			
+			System.out.println("***** authenticate success adding local  " +  serverQueue);
 			localMessageQueueList.put(connection, serverQueue);
 		}else{
 			Queue<JSONObject> queue = new LinkedList<>();
