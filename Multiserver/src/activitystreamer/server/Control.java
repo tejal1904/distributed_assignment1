@@ -4,11 +4,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -246,16 +242,25 @@ public class Control extends Thread {
 		}
 
 		//check the counter in localMessageList and resend if counter exceeds
-		/*if(localMessageList.size() > 0){
+		if(localMessageList.size() > 0){
 			Iterator<MessagePOJO> messagePOJOIterator = localMessageList.iterator();
 			while (messagePOJOIterator.hasNext()){
 				MessagePOJO pojo = messagePOJOIterator.next();
-				if(pojo.getCount() == 1){
-
-				}else if(pojo.getCount())
-
+				Queue<JSONObject> messages = pojo.getMessageQueue();
+				int count = ((Long)messages.peek().get("count")).intValue();
+				if(count < 4){
+					messages.peek().put("count",count+1);
+					JSONObject sendbroadcast = new JSONObject();
+					sendbroadcast.put("command", "ACTIVITY_BROADCAST");
+					sendbroadcast.put("activity", messages.peek());
+					try {
+						pojo.getToConnection().writeMsg(sendbroadcast.toJSONString());
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
 			}
-		}*/
+		}
 
 		return false;
 	}
