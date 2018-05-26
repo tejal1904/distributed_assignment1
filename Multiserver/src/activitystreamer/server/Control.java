@@ -232,7 +232,7 @@ public class Control extends Thread {
 			for(Connection connection:connectionList){
 				JSONObject output = new JSONObject();
 				output.put("command", "MESSAGE_STATUS");
-				output.put("queue", arrayToJson);
+				output.put("queue", localMessageList);
 				try {
 					connection.writeMsg(output.toJSONString());
 				} catch (IOException e) {

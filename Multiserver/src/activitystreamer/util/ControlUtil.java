@@ -13,6 +13,10 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
+import com.sun.xml.internal.ws.spi.db.PropertyAccessor;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.annotate.JsonAutoDetect;
+import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.json.simple.JSONObject;
@@ -128,7 +132,12 @@ public class ControlUtil {
 
     private boolean updateGlobalMessages(JSONObject msg, Connection connection) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        List<MessagePOJO> messagePOJOListList = mapper.readValue((String) msg.get("queue"), new TypeReference<List<MessagePOJO>>(){});
+		mapper.setVisibilityChecker(mapper.getSerializationConfig().getDefaultVisibilityChecker()
+				.withFieldVisibility(JsonAutoDetect.Visibility.ANY)
+				.withGetterVisibility(JsonAutoDetect.Visibility.ANY)
+				.withSetterVisibility(JsonAutoDetect.Visibility.ANY)
+				.withCreatorVisibility(JsonAutoDetect.Visibility.ANY));
+        List<MessagePOJO> messagePOJOListList = mapper.readValue((JsonParser) msg.get("queue"), new TypeReference<List<MessagePOJO>>(){});;
         Iterator<MessagePOJO> globalIterator = globalMessageList.iterator();
         Iterator<MessagePOJO> msgIterator = messagePOJOListList.iterator();
         while (globalIterator.hasNext()){
