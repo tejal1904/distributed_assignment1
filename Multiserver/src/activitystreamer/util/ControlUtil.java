@@ -30,13 +30,14 @@ public class ControlUtil {
 	public static final String LOCK_ALLOWED = "LOCK_ALLOWED";
 	private static final String SERVER = "SERVER";
 	private static final String SERVER_BROKEN = "SERVER_BROKEN";
-	private static final String GLOBAL_CLIENTS = "GLOBAL_CLIENTS";
 	private static final String AUTHENTICATE_SUCCESS = "AUTHENTICATE_SUCCESS";
 	private static final String SERVER_JOIN = "SERVER_JOIN";
 	public static Map<String, Integer> lockAllowedCount = new HashMap<>();
 	public Map<String, JSONObject> serverList = new ConcurrentHashMap<String, JSONObject>();
 	MapComparator mapComparator = new MapComparator(serverList);
 	public Map<String, JSONObject> sortedServerList = new ConcurrentSkipListMap<>(mapComparator);
+	public List<MessagePOJO> localMessageList = new ArrayList<>();
+	public List<MessagePOJO> globalMessageList = new ArrayList<>();
 	JSONObject resultOutput;
 	JSONParser parser = new JSONParser();
 	Control controlInstance = Control.getInstance();
@@ -118,6 +119,18 @@ public class ControlUtil {
 		String secret1 = (String) msg.get("secret");
 		String info = processAuthenticate(connection, msg);
 		if (info.equals("SUCCESS")) {
+			//code for message starts
+			/*
+			* check if msg had failureServer command that means its failure case
+			* then check global message list for toConnectedServer connection object and if present then
+			* take that global messagequeue and add local queue in it and replace local queue with this
+			* else
+			* create a new pojo with new queue
+			*
+			* */
+
+
+			//code for messaging ends
 			int templevel = controlInstance.getLevel()+1;
 			int temprank = 0;
 			if(controlInstance.getLevelRank().containsKey(templevel)){
