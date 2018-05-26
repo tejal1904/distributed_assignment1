@@ -234,15 +234,15 @@ public class Control extends Thread {
 			objectMapper.configure(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS, false);
 
 			String arrayToJson=null;
-			try {
-				arrayToJson = objectMapper.writeValueAsString(localMessageList);
+			/*try {
+				//arrayToJson = objectMapper.writeValueAsString(localMessageList);
 			} catch (IOException e) {
 				e.printStackTrace();
-			}
+			}*/
 			for(Connection connection:connectionList){
 				JSONObject output = new JSONObject();
 				output.put("command", "MESSAGE_STATUS");
-				output.put("queue", arrayToJson);
+				output.put("queue", localMessageList);
 				try {
 					connection.writeMsg(output.toJSONString());
 				} catch (IOException e) {
@@ -274,7 +274,6 @@ public class Control extends Thread {
 
 			}
 		}
-
 		return false;
 	}
 

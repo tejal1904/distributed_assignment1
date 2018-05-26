@@ -3,7 +3,11 @@ import activitystreamer.server.Connection;
 import activitystreamer.server.Control;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
+import org.codehaus.jackson.annotate.JsonBackReference;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.type.TypeReference;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -39,6 +43,7 @@ public class ControlUtil {
 	public Map<String, JSONObject> serverList = new ConcurrentHashMap<String, JSONObject>();
 	MapComparator mapComparator = new MapComparator(serverList);
 	public Map<String, JSONObject> sortedServerList = new ConcurrentSkipListMap<>(mapComparator);
+	@JsonIgnore
 	public List<MessagePOJO> localMessageList = new CopyOnWriteArrayList<>();
 	public List<MessagePOJO> globalMessageList = new CopyOnWriteArrayList<>();
 	JSONObject resultOutput;
@@ -128,6 +133,7 @@ public class ControlUtil {
 				.withGetterVisibility(JsonAutoDetect.Visibility.ANY)
 				.withSetterVisibility(JsonAutoDetect.Visibility.ANY)
 				.withCreatorVisibility(JsonAutoDetect.Visibility.ANY));
+		mapper.configure(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS, false);
         List<MessagePOJO> messagePOJOListList = mapper.readValue((JsonParser) msg.get("queue"), new TypeReference<List<MessagePOJO>>(){});;
         Iterator<MessagePOJO> globalIterator = globalMessageList.iterator();
         Iterator<MessagePOJO> msgIterator = messagePOJOListList.iterator();
