@@ -7,16 +7,16 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 public class MessagePOJO {
-    private Queue<JSONObject> q;
+    private Queue<JSONObject> messageQueue;
     Connection toConnection;
     String fromServerId;
 
-    public Queue<JSONObject> getQ() {
-        return q;
+    public Queue<JSONObject> getMessageQueue() {
+        return messageQueue;
     }
 
-    public void setQ(Queue<JSONObject> q) {
-        this.q = q;
+    public void setMessageQueue(Queue<JSONObject> messageQueue) {
+        this.messageQueue = messageQueue;
     }
 
     public Connection getToConnection() {
@@ -42,14 +42,14 @@ public class MessagePOJO {
 
         MessagePOJO that = (MessagePOJO) o;
 
-        if (!q.equals(that.q)) return false;
+        if (!messageQueue.equals(that.messageQueue)) return false;
         if (!toConnection.equals(that.toConnection)) return false;
         return fromServerId.equals(that.fromServerId);
     }
 
     @Override
     public int hashCode() {
-        int result = q.hashCode();
+        int result = messageQueue.hashCode();
         result = 31 * result + toConnection.hashCode();
         result = 31 * result + fromServerId.hashCode();
         return result;
@@ -58,7 +58,7 @@ public class MessagePOJO {
     @Override
     public String toString() {
         return "MessagePOJO{" +
-                "q=" + q +
+                "messageQueue=" + messageQueue +
                 ", toConnection=" + toConnection +
                 ", fromServerId='" + fromServerId + '\'' +
                 '}';
