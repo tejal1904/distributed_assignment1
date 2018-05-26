@@ -662,7 +662,9 @@ public class ControlUtil {
 	private boolean handleGetAcknowledgment(JSONObject msg, Connection connection) {
 		//put timer logic to return acknowledgment
 		Queue<JSONObject> messageQueue = localMessageQueueList.get(connection);
-		messageQueue.remove();
+		if(messageQueue != null && messageQueue.isEmpty()) {
+			messageQueue.poll();
+		}
 		if(!messageQueue.isEmpty()) {
 			JSONObject activityMessage = messageQueue.peek();
 			JSONObject sendQueueMessage = new JSONObject();
