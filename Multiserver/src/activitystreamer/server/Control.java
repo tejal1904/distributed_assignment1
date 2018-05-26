@@ -9,8 +9,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import activitystreamer.util.MessagePOJO;
+import com.sun.xml.internal.ws.developer.SerializationFeature;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONObject;
 
 import activitystreamer.util.ControlUtil;
@@ -229,6 +232,36 @@ public class Control extends Thread {
 				}
 			}
 		}
+
+		//sending message queue to all connected servers
+		List<MessagePOJO> localMessageList = ControlUtil.getInstance().localMessageList;
+		List<Connection> connectionList = new ArrayList<>();
+		Queue<JSONObject> messageQueue = new LinkedList<>();
+		if(localMessageList.size() > 0){
+			for(MessagePOJO pojo:localMessageList){
+				connectionList.add(pojo.getToConnection());
+				messageQueue.addAll(pojo.getMessageQueue());
+			}
+			ObjectMapper objectMapper = new ObjectMapper();
+			String arrayToJson=null;
+			try {
+				arrayToJson = objectMapper.writeValueAsString(localMessageList);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			for(Connection connection:connectionList){
+				JSONObject output = new JSONObject();
+				output.put("command", "MESSAGE_STATUS");
+				output.put("queue", arrayToJson);
+				try {
+					connection.writeMsg(output.toJSONString());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+
 		return false;
 	}
 
