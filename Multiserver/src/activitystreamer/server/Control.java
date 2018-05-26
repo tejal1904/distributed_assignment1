@@ -4,19 +4,17 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.*;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.codehaus.jackson.annotate.JsonAutoDetect;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
 import org.json.simple.JSONObject;
 
 import activitystreamer.util.ControlUtil;
-import activitystreamer.util.MessagePOJO;
 import activitystreamer.util.Settings;
 
 public class Control extends Thread {
@@ -217,42 +215,6 @@ public class Control extends Thread {
 				}
 			}
 		}
-
-		//sending message queue to all connected servers
-//		List<MessagePOJO> localMessageList = ControlUtil.getInstance().localMessageList;
-//		List<Connection> connectionList = new ArrayList<>();
-//		Queue<JSONObject> messageQueue = new LinkedList<>();
-//		if(localMessageList.size() > 0){
-//			for(MessagePOJO pojo:localMessageList){
-//				connectionList.add(pojo.getToConnection());
-//				messageQueue.addAll(pojo.getMessageQueue());
-//			}
-//			//ObjectMapper objectMapper = new ObjectMapper();
-//			ObjectMapper objectMapper = new ObjectMapper();
-//			objectMapper.setVisibilityChecker(objectMapper.getSerializationConfig().getDefaultVisibilityChecker()
-//					.withFieldVisibility(JsonAutoDetect.Visibility.ANY)
-//					.withGetterVisibility(JsonAutoDetect.Visibility.ANY)
-//					.withSetterVisibility(JsonAutoDetect.Visibility.ANY)
-//					.withCreatorVisibility(JsonAutoDetect.Visibility.ANY));
-//			objectMapper.configure(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS, false);
-//
-//			String arrayToJson=null;
-//			try {
-//				arrayToJson = objectMapper.writeValueAsString(localMessageList);
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//			for(Connection connection:connectionList){
-//				JSONObject output = new JSONObject();
-//				output.put("command", "MESSAGE_STATUS");
-//				output.put("queue", arrayToJson);
-//				try {
-//					connection.writeMsg(output.toJSONString());
-//				} catch (IOException e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		}
 
 		//check the counter in localMessageList and resend if counter exceeds
 		Iterator<Map.Entry<Connection, Queue<JSONObject>>> iterator = ControlUtil.getInstance().localMessageQueueList.entrySet().iterator();
